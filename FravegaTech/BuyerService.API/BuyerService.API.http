@@ -1,0 +1,6 @@
+@BuyerService.API_HostAddress = http://localhost:5105
+
+GET {{BuyerService.API_HostAddress}}/buyers/
+Accept: application/json
+
+###

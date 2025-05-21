@@ -1,0 +1,6 @@
+@EventService.API_HostAddress = http://localhost:5004
+
+GET {{EventService.API_HostAddress}}/events/
+Accept: application/json
+
+###
