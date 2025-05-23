@@ -1,9 +1,18 @@
+using OrderService.Application.Services;
+using OrderService.Data.Repositories;
+using CounterServices = CounterService.Services;
+using OrderApplicationServices = OrderService.Application.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Configuration.AddJsonFile("appsettings.json");
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<CounterServices.ICounterService, CounterServices.CounterService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<OrderApplicationServices.IOrderService, OrderApplicationServices.OrderService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

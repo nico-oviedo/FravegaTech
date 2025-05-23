@@ -17,7 +17,7 @@ namespace BuyerService.API.Controllers
         }
 
         [HttpGet("{buyerId}")]
-        public async Task<IActionResult> Get(string buyerId)
+        public async Task<IActionResult> GetAsync(string buyerId)
         {
             Buyer? buyer = await _buyerService.GetBuyerByIdAsync(buyerId);
 
@@ -28,7 +28,7 @@ namespace BuyerService.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] BuyerDto buyerDto)
+        public async Task<IActionResult> PostAsync([FromBody] BuyerDto buyerDto)
         {
             string? buyerId = await _buyerService.GetOrInsertNewBuyerAsync(buyerDto);
 

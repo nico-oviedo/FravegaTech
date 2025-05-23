@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OrderService.Application.Services;
+using SharedKernel.Dtos;
 
 namespace OrderService.API.Controllers
 {
@@ -6,31 +8,41 @@ namespace OrderService.API.Controllers
     [Route("v1/[controller]")]
     public class OrdersController : ControllerBase
     {
-        public OrdersController() { }
+        private readonly IOrderService _orderService;
 
+        public OrdersController(IOrderService orderService)
+        {
+            _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
+        }
 
         [HttpGet("{orderId}")]
-        public string Get(int orderId)
+        public async Task<IActionResult> GetAsync(int orderId)
         {
-            return null;
+            return Ok(await _orderService.GetAndTranslateOrderAsync(orderId));
         }
 
         [HttpGet("search")]
-        public string Get()
+        public async Task<IActionResult> SearchAsync([FromQuery] int orderId, [FromQuery] string documentNumber, [FromQuery] string status,
+            [FromQuery] string createdOnFrom, [FromQuery] string createdOnTo)
         {
-            return null;
+            return Ok(await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo));
         }
 
         [HttpPost]
-        public string Post() //FromBody Order
+        public async Task<IActionResult> PostAsync([FromBody] OrderDto orderDto)
         {
-            return null;
+            string? orderId = await _orderService.InsertNewOrderAsync(orderDto);
+
+            if (orderId is not null)
+                return Ok(orderId);
+            else
+                return BadRequest();
         }
 
         [HttpPost("{orderId}/events")]
-        public string Post(int orderId) //FromBody evento
+        public async Task<IActionResult> AddEventAsync(int orderId, [FromBody] EventDto eventDto)
         {
-            return null;
+            return Ok(await _orderService.AddEventAsync(orderId, eventDto));
         }
     }
 }

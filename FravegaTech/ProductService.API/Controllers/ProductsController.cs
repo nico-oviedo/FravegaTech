@@ -17,7 +17,7 @@ namespace ProductService.API.Controllers
         }
 
         [HttpGet("{productId}")]
-        public async Task<IActionResult> Get(string productId)
+        public async Task<IActionResult> GetAsync(string productId)
         {
             Product? product = await _productService.GetProductByIdAsync(productId);
 
@@ -28,7 +28,7 @@ namespace ProductService.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductDto productDto)
+        public async Task<IActionResult> PostAsync([FromBody] ProductDto productDto)
         {
             string? productId = await _productService.GetOrInsertNewProductAsync(productDto);
 
