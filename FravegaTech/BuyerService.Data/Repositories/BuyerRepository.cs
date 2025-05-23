@@ -1,12 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BuyerService.Domain;
+using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 
 namespace BuyerService.Data.Repositories
 {
-    internal class BuyerRepository
+    public class BuyerRepository : IBuyerRepository
     {
+        private readonly IMongoCollection<Buyer> _buyers;
+
+        public BuyerRepository(IConfiguration config)
+        {
+            var client = new MongoClient(config.GetConnectionString("MongoDB"));
+            var database = client.GetDatabase(config.GetConnectionString("BuyerDatabase"));
+            _buyers = database.GetCollection<Buyer>(config.GetConnectionString("BuyersCollection"));
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetBuyerIdByDocumentNumber(string documentNumber)
+        {
+            try
+            {
+                Buyer buyer = await _buyers.Find(b => b.DocumentNumber == documentNumber).FirstOrDefaultAsync();
+                return buyer?._id;
+            }
+            catch (Exception ex)
+            {
+                //Loguear exception
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> InsertBuyer(Buyer buyer)
+        {
+            try
+            {
+                await _buyers.InsertOneAsync(buyer);
+                return buyer._id;
+            }
+            catch (Exception ex)
+            {
+                //Loguear exception
+                return null;
+            }
+        }
     }
 }

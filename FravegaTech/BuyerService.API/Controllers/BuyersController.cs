@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BuyerService.Application.Services;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Dtos;
 
 namespace BuyerService.API.Controllers
 {
@@ -6,19 +8,23 @@ namespace BuyerService.API.Controllers
     [Route("v1/[controller]")]
     public class BuyersController : ControllerBase
     {
-        public BuyersController() { }
+        private readonly IBuyerService _buyerService;
 
-
-        [HttpGet("{documentNumber}")]
-        public string Get(string documentNumber)
+        public BuyersController(IBuyerService buyerService)
         {
-            return null;
+            _buyerService = buyerService ?? throw new ArgumentNullException(nameof(buyerService));
         }
 
+
         [HttpPost]
-        public string Post()
+        public async Task<IActionResult> Post([FromBody] BuyerDto buyerDto)
         {
-            return null;
+            string? buyerId = await _buyerService.GetOrInsertNewBuyer(buyerDto);
+
+            if (buyerId is not null)
+                return Ok(buyerId);
+            else
+                return BadRequest();
         }
     }
 }

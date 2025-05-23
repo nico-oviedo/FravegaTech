@@ -1,9 +1,14 @@
+using BuyerService.Data.Repositories;
+using BuyerApplicationServices = BuyerService.Application.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Configuration.AddJsonFile("appsettings.json");
+
+builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
+builder.Services.AddScoped<BuyerApplicationServices.IBuyerService, BuyerApplicationServices.BuyerService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

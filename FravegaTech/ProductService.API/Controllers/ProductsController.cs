@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProductService.Application.Services;
+using Shared.Dtos;
 
 namespace ProductService.API.Controllers
 {
@@ -6,19 +8,22 @@ namespace ProductService.API.Controllers
     [Route("v1/[controller]")]
     public class ProductsController : ControllerBase
     {
-        public ProductsController() { }
+        private readonly IProductService _productService;
 
-
-        [HttpGet("{sku}")]
-        public string Get(string sku)
+        public ProductsController(IProductService productService)
         {
-            return null;
+            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
         }
 
         [HttpPost]
-        public string Post()
+        public async Task<IActionResult> Post([FromBody] ProductDto productDto)
         {
-            return null;
+            string? productId = await _productService.GetOrInsertNewProduct(productDto);
+
+            if (productId is not null)
+                return Ok(productId);
+            else
+                return BadRequest();
         }
     }
 }
