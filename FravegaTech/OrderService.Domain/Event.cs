@@ -13,9 +13,6 @@ namespace OrderService.Domain
         [BsonElement("eventId")]
         public string EventId { get; set; }
 
-        [BsonElement("orderId")]
-        public int OrderId { get; set; }
-
         [BsonElement("type")]
         public OrderStatus Type { get; set; }
 

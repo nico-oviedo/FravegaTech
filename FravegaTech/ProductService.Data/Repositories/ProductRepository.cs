@@ -16,7 +16,21 @@ namespace ProductService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetProductIdBySKU(string sku)
+        public async Task<Product?> GetProductByIdAsync(string productId)
+        {
+            try
+            {
+                return await _products.Find(p => p._id == productId).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                //Loguear exception
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetProductIdBySKUAsync(string sku)
         {
             try
             {
@@ -31,7 +45,7 @@ namespace ProductService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertProduct(Product product)
+        public async Task<string?> InsertProductAsync(Product product)
         {
             try
             {

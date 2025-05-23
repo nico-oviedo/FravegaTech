@@ -1,6 +1,6 @@
 ﻿using ProductService.Data.Repositories;
 using ProductService.Domain;
-using Shared.Dtos;
+using SharedKernel.Dtos;
 
 namespace ProductService.Application.Services
 {
@@ -14,9 +14,15 @@ namespace ProductService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetOrInsertNewProduct(ProductDto productDto)
+        public async Task<Product?> GetProductByIdAsync(string productId)
         {
-            string? productId = await _productRepository.GetProductIdBySKU(productDto.SKU);
+            return await _productRepository.GetProductByIdAsync(productId);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetOrInsertNewProductAsync(ProductDto productDto)
+        {
+            string? productId = await _productRepository.GetProductIdBySKUAsync(productDto.SKU);
 
             if (productId is null)
             {
@@ -29,7 +35,7 @@ namespace ProductService.Application.Services
                     Price = productDto.Price
                 };
 
-                productId = await _productRepository.InsertProduct(product);
+                productId = await _productRepository.InsertProductAsync(product);
             }
 
             return productId;

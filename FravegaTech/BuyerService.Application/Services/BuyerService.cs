@@ -1,6 +1,7 @@
 ﻿using BuyerService.Data.Repositories;
 using BuyerService.Domain;
-using Shared.Dtos;
+using SharedKernel.Dtos;
+
 
 namespace BuyerService.Application.Services
 {
@@ -14,9 +15,15 @@ namespace BuyerService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetOrInsertNewBuyer(BuyerDto buyerDto)
+        public async Task<Buyer?> GetBuyerByIdAsync(string buyerId)
         {
-            string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumber(buyerDto.DocumentNumber);
+            return await _buyerRepository.GetBuyerByIdAsync(buyerId);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetOrInsertNewBuyerAsync(BuyerDto buyerDto)
+        {
+            string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
 
             if (buyerId is null)
             {
@@ -29,7 +36,7 @@ namespace BuyerService.Application.Services
                     Phone = buyerDto.Phone
                 };
 
-                buyerId = await _buyerRepository.InsertBuyer(buyer);
+                buyerId = await _buyerRepository.InsertBuyerAsync(buyer);
             }
 
             return buyerId;

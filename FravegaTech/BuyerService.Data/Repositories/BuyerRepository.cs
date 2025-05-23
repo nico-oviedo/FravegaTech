@@ -16,7 +16,21 @@ namespace BuyerService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetBuyerIdByDocumentNumber(string documentNumber)
+        public async Task<Buyer?> GetBuyerByIdAsync(string buyerId)
+        {
+            try
+            {
+                return await _buyers.Find(b => b._id == buyerId).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                //Loguear exception
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
         {
             try
             {
@@ -31,7 +45,7 @@ namespace BuyerService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertBuyer(Buyer buyer)
+        public async Task<string?> InsertBuyerAsync(Buyer buyer)
         {
             try
             {
