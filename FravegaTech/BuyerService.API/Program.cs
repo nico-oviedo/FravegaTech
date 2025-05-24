@@ -1,9 +1,12 @@
+using BuyerService.Application.Mappers;
 using BuyerService.Data.Repositories;
 using BuyerApplicationServices = BuyerService.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json");
+
+builder.Services.AddAutoMapper(typeof(BuyerProfile));
 
 builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
 builder.Services.AddScoped<BuyerApplicationServices.IBuyerService, BuyerApplicationServices.BuyerService>();

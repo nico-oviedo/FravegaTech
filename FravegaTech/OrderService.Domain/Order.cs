@@ -28,8 +28,8 @@ namespace OrderService.Domain
         [BsonElement("buyerId")]
         public string BuyerId { get; set; }
 
-        [BsonElement("orderProducts")]
-        public IEnumerable<OrderProduct> OrderProducts { get; set; }
+        [BsonElement("products")]
+        public IEnumerable<OrderProduct> Products { get; set; }
 
         [BsonElement("status")]
         public OrderStatus Status { get; set; }

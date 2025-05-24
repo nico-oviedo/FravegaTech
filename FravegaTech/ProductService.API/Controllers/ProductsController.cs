@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Services;
-using ProductService.Domain;
 using SharedKernel.Dtos;
 
 namespace ProductService.API.Controllers
@@ -19,10 +18,10 @@ namespace ProductService.API.Controllers
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetAsync(string productId)
         {
-            Product? product = await _productService.GetProductByIdAsync(productId);
+            ProductDto productDto = await _productService.GetProductByIdAsync(productId);
 
-            if (product is not null)
-                return Ok(product);
+            if (productDto is not null)
+                return Ok(productDto);
             else
                 return BadRequest();
         }
@@ -30,7 +29,7 @@ namespace ProductService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDto productDto)
         {
-            string? productId = await _productService.GetOrInsertNewProductAsync(productDto);
+            string? productId = await _productService.GetProductIdOrInsertNewProductAsync(productDto);
 
             if (productId is not null)
                 return Ok(productId);

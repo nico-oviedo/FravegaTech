@@ -16,7 +16,7 @@ namespace BuyerService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Buyer?> GetBuyerByIdAsync(string buyerId)
+        public async Task<Buyer> GetBuyerByIdAsync(string buyerId)
         {
             try
             {

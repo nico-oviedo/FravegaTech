@@ -9,7 +9,7 @@ namespace BuyerService.Data.Repositories
         /// </summary>
         /// <param name="buyerId">Buyer id.</param>
         /// <returns>Buyer object.</returns>
-        Task<Buyer?> GetBuyerByIdAsync(string buyerId);
+        Task<Buyer> GetBuyerByIdAsync(string buyerId);
 
         /// <summary>
         /// Gets buyer id by document number

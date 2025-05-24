@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrderService.Application.Services;
 using SharedKernel.Dtos;
+using SharedKernel.Dtos.Responses;
 
 namespace OrderService.API.Controllers
 {
@@ -18,14 +19,24 @@ namespace OrderService.API.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetAsync(int orderId)
         {
-            return Ok(await _orderService.GetAndTranslateOrderAsync(orderId));
+            OrderTranslatedDto orderTranslatedDto = await _orderService.GetAndTranslateOrderAsync(orderId);
+
+            if (orderTranslatedDto is not null)
+                return Ok(orderTranslatedDto);
+            else
+                return BadRequest();
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchAsync([FromQuery] int orderId, [FromQuery] string documentNumber, [FromQuery] string status,
             [FromQuery] string createdOnFrom, [FromQuery] string createdOnTo)
         {
-            return Ok(await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo));
+            IEnumerable<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
+
+            if (orderDtos is not null)
+                return Ok(orderDtos);
+            else
+                return BadRequest();
         }
 
         [HttpPost]

@@ -1,5 +1,4 @@
 ﻿using BuyerService.Application.Services;
-using BuyerService.Domain;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Dtos;
 
@@ -19,10 +18,10 @@ namespace BuyerService.API.Controllers
         [HttpGet("{buyerId}")]
         public async Task<IActionResult> GetAsync(string buyerId)
         {
-            Buyer? buyer = await _buyerService.GetBuyerByIdAsync(buyerId);
+            BuyerDto buyerDto = await _buyerService.GetBuyerByIdAsync(buyerId);
 
-            if (buyer is not null)
-                return Ok(buyer);
+            if (buyerDto is not null)
+                return Ok(buyerDto);
             else
                 return BadRequest();
         }
@@ -30,7 +29,7 @@ namespace BuyerService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] BuyerDto buyerDto)
         {
-            string? buyerId = await _buyerService.GetOrInsertNewBuyerAsync(buyerDto);
+            string? buyerId = await _buyerService.GetBuyerIdOrInsertNewBuyerAsync(buyerDto);
 
             if (buyerId is not null)
                 return Ok(buyerId);

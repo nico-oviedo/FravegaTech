@@ -1,41 +1,36 @@
-﻿using BuyerService.Data.Repositories;
+﻿using AutoMapper;
+using BuyerService.Data.Repositories;
 using BuyerService.Domain;
 using SharedKernel.Dtos;
-
 
 namespace BuyerService.Application.Services
 {
     public class BuyerService : IBuyerService
     {
         private readonly IBuyerRepository _buyerRepository;
+        private readonly IMapper _mapper;
 
-        public BuyerService(IBuyerRepository buyerRepository)
+        public BuyerService(IBuyerRepository buyerRepository, IMapper mapper)
         {
             _buyerRepository = buyerRepository ?? throw new ArgumentNullException(nameof(buyerRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         /// <inheritdoc/>
-        public async Task<Buyer?> GetBuyerByIdAsync(string buyerId)
+        public async Task<BuyerDto> GetBuyerByIdAsync(string buyerId)
         {
-            return await _buyerRepository.GetBuyerByIdAsync(buyerId);
+            Buyer buyer = await _buyerRepository.GetBuyerByIdAsync(buyerId);
+            return _mapper.Map<BuyerDto>(buyer); 
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetOrInsertNewBuyerAsync(BuyerDto buyerDto)
+        public async Task<string?> GetBuyerIdOrInsertNewBuyerAsync(BuyerDto buyerDto)
         {
             string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
 
             if (buyerId is null)
             {
-                //TODO: **Quizas agregue un mapeo automatico luego**
-                Buyer buyer = new Buyer()
-                {
-                    FirstName = buyerDto.FirstName,
-                    LastName = buyerDto.LastName,
-                    DocumentNumber = buyerDto.DocumentNumber,
-                    Phone = buyerDto.Phone
-                };
-
+                Buyer buyer = _mapper.Map<Buyer>(buyerDto);
                 buyerId = await _buyerRepository.InsertBuyerAsync(buyer);
             }
 

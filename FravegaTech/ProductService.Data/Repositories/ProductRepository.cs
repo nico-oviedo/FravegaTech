@@ -16,7 +16,7 @@ namespace ProductService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Product?> GetProductByIdAsync(string productId)
+        public async Task<Product> GetProductByIdAsync(string productId)
         {
             try
             {

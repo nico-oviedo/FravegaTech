@@ -21,7 +21,7 @@ namespace OrderService.Application.Services
         /// <param name="createdOnFrom">Order created from.</param>
         /// <param name="createdOnTo">Order created to.</param>
         /// <returns>List of orders dto.</returns>
-        Task<OrderDto> SearchOrdersAsync(int orderId, string documentNumber, string status,
+        Task<IEnumerable<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
             string createdOnFrom, string createdOnTo);
 
         /// <summary>

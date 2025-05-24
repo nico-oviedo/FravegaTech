@@ -1,3 +1,4 @@
+using OrderService.Application.Mappers;
 using OrderService.Application.Services;
 using OrderService.Data.Repositories;
 using CounterServices = CounterService.Services;
@@ -6,6 +7,9 @@ using OrderApplicationServices = OrderService.Application.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json");
+
+builder.Services.AddAutoMapper(typeof(OrderProfile));
+builder.Services.AddAutoMapper(typeof(EventProfile));
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<CounterServices.ICounterService, CounterServices.CounterService>();

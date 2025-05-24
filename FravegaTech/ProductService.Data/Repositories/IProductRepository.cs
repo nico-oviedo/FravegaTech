@@ -9,7 +9,7 @@ namespace ProductService.Data.Repositories
         /// </summary>
         /// <param name="productId">Product id.</param>
         /// <returns>Product object.</returns>
-        Task<Product?> GetProductByIdAsync(string productId);
+        Task<Product> GetProductByIdAsync(string productId);
 
         /// <summary>
         /// Gets product id by SKU
