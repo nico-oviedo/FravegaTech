@@ -3,7 +3,9 @@ using CounterService.Services;
 using OrderService.Data.Repositories;
 using OrderService.Domain;
 using SharedKernel.Dtos;
+using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
+using SharedKernel.ServiceClients;
 
 namespace OrderService.Application.Services
 {
@@ -12,13 +14,18 @@ namespace OrderService.Application.Services
         private readonly IOrderRepository _orderRepository;
         private readonly ICounterService _counterService;
         private readonly IEventService _eventService;
+        private readonly BuyerServiceClient _buyerServiceClient;
+        private readonly ProductServiceClient _productServiceClient;
         private readonly IMapper _mapper;
 
-        public OrderService(IOrderRepository orderRepository, ICounterService counterService, IEventService eventService, IMapper mapper)
+        public OrderService(IOrderRepository orderRepository, ICounterService counterService, IEventService eventService,
+            BuyerServiceClient buyerServiceClient, ProductServiceClient productServiceClient, IMapper mapper)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
             _counterService = counterService ?? throw new ArgumentNullException(nameof(counterService));
             _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            _buyerServiceClient = buyerServiceClient ?? throw new ArgumentNullException(nameof(buyerServiceClient));
+            _productServiceClient = productServiceClient ?? throw new ArgumentNullException(nameof(productServiceClient));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -41,7 +48,7 @@ namespace OrderService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertNewOrderAsync(OrderDto orderDto)
+        public async Task<OrderCreatedDto> InsertNewOrderAsync(OrderRequestDto orderRequestDto)
         {
             //Validar que la clave: ExternalReferenceID + Channel no exista en la base de datos
 
@@ -53,18 +60,20 @@ namespace OrderService.Application.Services
 
             //Obtener el OrderId secuencial
 
-            Order order = _mapper.Map<Order>(orderDto);
+            Order order = _mapper.Map<Order>(orderRequestDto);
             /*
                 BuyerId = "", //obtener
                 Products = null, //mapearlos
                 Events = null //servicio de eventos que te cree uno
              */
 
-            return await _orderRepository.InsertOrderAsync(order);
+            //return await _orderRepository.InsertOrderAsync(order);
+
+            return null;
         }
 
         /// <inheritdoc/>
-        public async Task<bool> AddEventAsync(int orderId, EventDto eventDto)
+        public async Task<EventAddedDto> AddEventAsync(int orderId, EventDto eventDto)
         {
             //Validar que el id sea unico
 
@@ -72,7 +81,7 @@ namespace OrderService.Application.Services
 
             //Guardar evento en la orden
 
-            return false;
+            return null;
         }
     }
 }

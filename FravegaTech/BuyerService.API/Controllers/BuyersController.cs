@@ -28,7 +28,7 @@ namespace BuyerService.API.Controllers
             if (buyerDto is not null)
                 return Ok(buyerDto);
             else
-                return NoContent();
+                return NotFound();
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace BuyerService.API.Controllers
             if (buyerId is not null)
                 return Ok(buyerId);
             else
-                return NoContent();
+                return NotFound();
         }
 
         /// <summary>

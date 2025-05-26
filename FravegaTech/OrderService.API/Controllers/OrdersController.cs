@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrderService.Application.Services;
 using SharedKernel.Dtos;
+using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
 
 namespace OrderService.API.Controllers
@@ -16,6 +17,11 @@ namespace OrderService.API.Controllers
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
         }
 
+        /// <summary>
+        /// Gets order dto by id
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <returns>Order translated dto object.</returns>
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetAsync(int orderId)
         {
@@ -27,6 +33,15 @@ namespace OrderService.API.Controllers
                 return BadRequest();
         }
 
+        /// <summary>
+        /// Searchs orders according to given filters
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="documentNumber">Buyer document number.</param>
+        /// <param name="status">Order status.</param>
+        /// <param name="createdOnFrom">Order created from.</param>
+        /// <param name="createdOnTo">Order created to.</param>
+        /// <returns>List of order dto objects.</returns>
         [HttpGet("search")]
         public async Task<IActionResult> SearchAsync([FromQuery] int orderId, [FromQuery] string documentNumber, [FromQuery] string status,
             [FromQuery] string createdOnFrom, [FromQuery] string createdOnTo)
@@ -39,21 +54,37 @@ namespace OrderService.API.Controllers
                 return BadRequest();
         }
 
+        /// <summary>
+        /// Adds new order
+        /// </summary>
+        /// <param name="orderRequestDto">Order request dto object.</param>
+        /// <returns>Order created dto object.</returns>
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] OrderDto orderDto)
+        public async Task<IActionResult> PostAsync([FromBody] OrderRequestDto orderRequestDto)
         {
-            string? orderId = await _orderService.InsertNewOrderAsync(orderDto);
+            OrderCreatedDto orderCreatedDto = await _orderService.InsertNewOrderAsync(orderRequestDto);
 
-            if (orderId is not null)
-                return Ok(orderId);
+            if (orderCreatedDto is not null)
+                return Ok(orderCreatedDto);
             else
                 return BadRequest();
         }
 
+        /// <summary>
+        /// Adds event to an order
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="eventDto">Event dto.</param>
+        /// <returns>Event added dto object.</returns>
         [HttpPost("{orderId}/events")]
         public async Task<IActionResult> AddEventAsync(int orderId, [FromBody] EventDto eventDto)
         {
-            return Ok(await _orderService.AddEventAsync(orderId, eventDto));
+            EventAddedDto eventAddedDto = await _orderService.AddEventAsync(orderId, eventDto);
+
+            if (eventAddedDto is not null)
+                return Ok(eventAddedDto);
+            else
+                return BadRequest();
         }
     }
 }

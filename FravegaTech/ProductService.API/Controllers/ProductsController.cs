@@ -28,7 +28,7 @@ namespace ProductService.API.Controllers
             if (productDto is not null)
                 return Ok(productDto);
             else
-                return NoContent();
+                return NotFound();
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace ProductService.API.Controllers
             if (productId is not null)
                 return Ok(productId);
             else
-                return NoContent();
+                return NotFound();
         }
 
         /// <summary>

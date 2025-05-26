@@ -1,4 +1,5 @@
 ﻿using SharedKernel.Dtos;
+using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
 
 namespace OrderService.Application.Services
@@ -27,16 +28,16 @@ namespace OrderService.Application.Services
         /// <summary>
         /// Inserts new order
         /// </summary>
-        /// <param name="orderDto">Order dto object.</param>
-        /// <returns>Order id.</returns>
-        Task<string?> InsertNewOrderAsync(OrderDto orderDto);
+        /// <param name="orderRequestDto">Order request dto object.</param>
+        /// <returns>Order created dto object.</returns>
+        Task<OrderCreatedDto> InsertNewOrderAsync(OrderRequestDto orderRequestDto);
 
         /// <summary>
         /// Add event to an order
         /// </summary>
         /// <param name="orderId">Order id.</param>
         /// <param name="eventDto">Event dto object.</param>
-        /// <returns>True if the event was added.</returns>
-        Task<bool> AddEventAsync(int orderId, EventDto eventDto);
+        /// <returns>Event added dto object.</returns>
+        Task<EventAddedDto> AddEventAsync(int orderId, EventDto eventDto);
     }
 }
