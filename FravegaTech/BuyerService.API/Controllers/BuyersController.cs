@@ -15,6 +15,11 @@ namespace BuyerService.API.Controllers
             _buyerService = buyerService ?? throw new ArgumentNullException(nameof(buyerService));
         }
 
+        /// <summary>
+        /// Gets buyer dto by id
+        /// </summary>
+        /// <param name="buyerId">Buyer id.</param>
+        /// <returns>Buyer dto object.</returns>
         [HttpGet("{buyerId}")]
         public async Task<IActionResult> GetAsync(string buyerId)
         {
@@ -23,13 +28,34 @@ namespace BuyerService.API.Controllers
             if (buyerDto is not null)
                 return Ok(buyerDto);
             else
-                return BadRequest();
+                return NoContent();
         }
 
+        /// <summary>
+        /// Gets buyer id by document number
+        /// </summary>
+        /// <param name="documentNumber">Buyer document number.</param>
+        /// <returns>Buyer id.</returns>
+        [HttpGet("documentnumber/{documentNumber}")]
+        public async Task<IActionResult> GetByDocumentNumberAsync(string documentNumber)
+        {
+            string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
+
+            if (buyerId is not null)
+                return Ok(buyerId);
+            else
+                return NoContent();
+        }
+
+        /// <summary>
+        /// Adds new buyer
+        /// </summary>
+        /// <param name="buyerDto">Buyer dto object.</param>
+        /// <returns>Added buyer id.</returns>
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] BuyerDto buyerDto)
         {
-            string? buyerId = await _buyerService.GetBuyerIdOrInsertNewBuyerAsync(buyerDto);
+            string? buyerId = await _buyerService.AddBuyerAsync(buyerDto);
 
             if (buyerId is not null)
                 return Ok(buyerId);

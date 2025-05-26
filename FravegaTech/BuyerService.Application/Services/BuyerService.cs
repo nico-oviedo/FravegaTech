@@ -20,21 +20,25 @@ namespace BuyerService.Application.Services
         public async Task<BuyerDto> GetBuyerByIdAsync(string buyerId)
         {
             Buyer buyer = await _buyerRepository.GetBuyerByIdAsync(buyerId);
-            return _mapper.Map<BuyerDto>(buyer); 
+            return _mapper.Map<BuyerDto>(buyer);
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetBuyerIdOrInsertNewBuyerAsync(BuyerDto buyerDto)
+        public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
         {
-            string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
+            return await _buyerRepository.GetBuyerIdByDocumentNumberAsync(documentNumber);
+        }
 
-            if (buyerId is null)
-            {
-                Buyer buyer = _mapper.Map<Buyer>(buyerDto);
-                buyerId = await _buyerRepository.InsertBuyerAsync(buyer);
-            }
+        /// <inheritdoc/>
+        public async Task<string?> AddBuyerAsync(BuyerDto buyerDto)
+        {
+            string? buyerId = await GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
 
-            return buyerId;
+            if (buyerId is not null)
+                return buyerId;
+
+            Buyer buyer = _mapper.Map<Buyer>(buyerDto);
+            return await _buyerRepository.AddBuyerAsync(buyer);
         }
     }
 }

@@ -12,10 +12,17 @@ namespace ProductService.Application.Services
         Task<ProductDto> GetProductByIdAsync(string productId);
 
         /// <summary>
-        /// Gets product id or insert new product
+        /// Gets product id by SKU
+        /// </summary>
+        /// <param name="sku">Product SKU.</param>
+        /// <returns>Product id.</returns>
+        Task<string?> GetProductIdBySKUAsync(string sku);
+
+        /// <summary>
+        /// Adds new product
         /// </summary>
         /// <param name="productDto">Product dto object.</param>
-        /// <returns>Product id.</returns>
-        Task<string?> GetProductIdOrInsertNewProductAsync(ProductDto productDto);
+        /// <returns>Added product id.</returns>
+        Task<string?> AddProductAsync(ProductDto productDto);
     }
 }

@@ -23,7 +23,7 @@ namespace SharedKernel.Dtos
         public BuyerDto Buyer { get; set; }
 
         [Required(ErrorMessage = "Productos de la orden son obligatorios.")]
-        public IEnumerable<ProductDto> Products { get; set; }
+        public IEnumerable<OrderProductDto> Products { get; set; }
 
         public string Status { get; set; }
 

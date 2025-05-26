@@ -34,7 +34,7 @@ namespace ProductService.Data.Repositories
         {
             try
             {
-                Product product = await _products.Find(p => p.SKU == sku).FirstOrDefaultAsync();
+                Product product = await _products.Find(p => p.SKU.ToLower() == sku.ToLower()).FirstOrDefaultAsync();
                 return product?._id;
             }
             catch (Exception ex)
@@ -45,7 +45,7 @@ namespace ProductService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertProductAsync(Product product)
+        public async Task<string?> AddProductAsync(Product product)
         {
             try
             {

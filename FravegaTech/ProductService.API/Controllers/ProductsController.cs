@@ -15,6 +15,11 @@ namespace ProductService.API.Controllers
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
         }
 
+        /// <summary>
+        /// Gets product dto by id
+        /// </summary>
+        /// <param name="productId">Product id.</param>
+        /// <returns>Product dto object.</returns>
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetAsync(string productId)
         {
@@ -23,13 +28,34 @@ namespace ProductService.API.Controllers
             if (productDto is not null)
                 return Ok(productDto);
             else
-                return BadRequest();
+                return NoContent();
         }
 
+        /// <summary>
+        /// Gets product id by SKU
+        /// </summary>
+        /// <param name="sku">Product SKU.</param>
+        /// <returns>Product id.</returns>
+        [HttpGet("sku/{sku}")]
+        public async Task<IActionResult> GetBySKUAsync(string sku)
+        {
+            string? productId = await _productService.GetProductIdBySKUAsync(sku);
+
+            if (productId is not null)
+                return Ok(productId);
+            else
+                return NoContent();
+        }
+
+        /// <summary>
+        /// Adds new product
+        /// </summary>
+        /// <param name="productDto">Product dto object.</param>
+        /// <returns>Added product id.</returns>
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDto productDto)
         {
-            string? productId = await _productService.GetProductIdOrInsertNewProductAsync(productDto);
+            string? productId = await _productService.AddProductAsync(productDto);
 
             if (productId is not null)
                 return Ok(productId);

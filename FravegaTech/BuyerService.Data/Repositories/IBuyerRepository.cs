@@ -14,15 +14,15 @@ namespace BuyerService.Data.Repositories
         /// <summary>
         /// Gets buyer id by document number
         /// </summary>
-        /// <param name="documentNumber">Document number.</param>
+        /// <param name="documentNumber">Buyer document number.</param>
         /// <returns>Buyer id.</returns>
         Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber);
 
         /// <summary>
-        /// Inserts new buyer
+        /// Adds new buyer
         /// </summary>
         /// <param name="buyer">Buyer object.</param>
-        /// <returns>Inserted buyer id.</returns>
-        Task<string?> InsertBuyerAsync(Buyer buyer);
+        /// <returns>Added buyer id.</returns>
+        Task<string?> AddBuyerAsync(Buyer buyer);
     }
 }

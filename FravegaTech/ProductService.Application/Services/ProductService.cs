@@ -24,17 +24,21 @@ namespace ProductService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetProductIdOrInsertNewProductAsync(ProductDto productDto)
+        public async Task<string?> GetProductIdBySKUAsync(string sku)
         {
-            string? productId = await _productRepository.GetProductIdBySKUAsync(productDto.SKU);
+            return await _productRepository.GetProductIdBySKUAsync(sku);
+        }
 
-            if (productId is null)
-            {
-                Product product = _mapper.Map<Product>(productDto);
-                productId = await _productRepository.InsertProductAsync(product);
-            }
+        /// <inheritdoc/>
+        public async Task<string?> AddProductAsync(ProductDto productDto)
+        {
+            string? productId = await GetProductIdBySKUAsync(productDto.SKU);
 
-            return productId;
+            if (productId is not null)
+                return productId;
+
+            Product product = _mapper.Map<Product>(productDto);
+            return await _productRepository.AddProductAsync(product);
         }
     }
 }

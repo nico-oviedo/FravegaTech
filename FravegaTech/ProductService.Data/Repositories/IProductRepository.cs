@@ -14,15 +14,15 @@ namespace ProductService.Data.Repositories
         /// <summary>
         /// Gets product id by SKU
         /// </summary>
-        /// <param name="sku">SKU.</param>
+        /// <param name="sku">Product SKU.</param>
         /// <returns>Product id.</returns>
         Task<string?> GetProductIdBySKUAsync(string sku);
 
         /// <summary>
-        /// Inserts new product
+        /// Adds new product
         /// </summary>
         /// <param name="product">Product object.</param>
         /// <returns>Inserted product id.</returns>
-        Task<string?> InsertProductAsync(Product product);
+        Task<string?> AddProductAsync(Product product);
     }
 }

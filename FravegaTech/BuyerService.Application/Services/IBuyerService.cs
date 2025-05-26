@@ -1,5 +1,4 @@
-﻿using BuyerService.Domain;
-using SharedKernel.Dtos;
+﻿using SharedKernel.Dtos;
 
 namespace BuyerService.Application.Services
 {
@@ -13,10 +12,17 @@ namespace BuyerService.Application.Services
         Task<BuyerDto> GetBuyerByIdAsync(string buyerId);
 
         /// <summary>
-        /// Gets buyer id or insert new buyer
+        /// Gets buyer id by document number
+        /// </summary>
+        /// <param name="documentNumber">Buyer document number.</param>
+        /// <returns>Buyer id.</returns>
+        Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber);
+
+        /// <summary>
+        /// Adds new buyer
         /// </summary>
         /// <param name="buyerDto">Buyer dto object.</param>
-        /// <returns>Buyer id.</returns>
-        Task<string?> GetBuyerIdOrInsertNewBuyerAsync(BuyerDto buyerDto);
+        /// <returns>Added buyer id.</returns>
+        Task<string?> AddBuyerAsync(BuyerDto buyerDto);
     }
 }

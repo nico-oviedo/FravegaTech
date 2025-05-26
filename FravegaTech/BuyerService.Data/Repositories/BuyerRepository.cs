@@ -45,7 +45,7 @@ namespace BuyerService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertBuyerAsync(Buyer buyer)
+        public async Task<string?> AddBuyerAsync(Buyer buyer)
         {
             try
             {
