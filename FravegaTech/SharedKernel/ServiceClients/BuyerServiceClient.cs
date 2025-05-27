@@ -1,15 +1,14 @@
-﻿using System.Net.Http.Json;
-using SharedKernel.Dtos;
+﻿using SharedKernel.Dtos;
 
 namespace SharedKernel.ServiceClients
 {
-    public class BuyerServiceClient
+    public class BuyerServiceClient : HttpServiceClient
     {
-        private readonly HttpClient _http;
+        private readonly string _baseUrl;
 
-        public BuyerServiceClient(HttpClient http)
+        public BuyerServiceClient(HttpClient http) : base(http)
         {
-            _http = http ?? throw new ArgumentNullException(nameof(http));
+            _baseUrl = http.BaseAddress?.OriginalString ?? throw new ArgumentNullException(nameof(http.BaseAddress));
         }
 
         /// <summary>
@@ -19,19 +18,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Buyer dto object.</returns>
         public async Task<BuyerDto?> GetBuyerByIdAsync(string buyerId)
         {
-            try
-            {
-                var response = await _http.GetAsync($"{_http.BaseAddress}{buyerId}");
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<BuyerDto>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await GetAsync<BuyerDto?>($"{_baseUrl}{buyerId}");
         }
 
         /// <summary>
@@ -41,19 +28,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Buyer id.</returns>
         public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
         {
-            try
-            {
-                var response = await _http.GetAsync($"{_http.BaseAddress}documentnumber/{documentNumber}");
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<string>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await GetAsync<string?>($"{_baseUrl}documentnumber/{documentNumber}");
         }
 
         /// <summary>
@@ -63,19 +38,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Added buyer id.</returns>
         public async Task<string?> AddBuyerAsync(BuyerDto buyerDto)
         {
-            try
-            {
-                var response = await _http.PostAsJsonAsync(_http.BaseAddress, buyerDto);
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<string>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await PostAsync<BuyerDto, string?>(_baseUrl, buyerDto);
         }
     }
 }

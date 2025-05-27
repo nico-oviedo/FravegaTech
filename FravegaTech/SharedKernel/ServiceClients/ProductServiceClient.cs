@@ -1,15 +1,14 @@
-﻿using System.Net.Http.Json;
-using SharedKernel.Dtos;
+﻿using SharedKernel.Dtos;
 
 namespace SharedKernel.ServiceClients
 {
-    public class ProductServiceClient
+    public class ProductServiceClient : HttpServiceClient
     {
-        private readonly HttpClient _http;
+        private readonly string _baseUrl;
 
-        public ProductServiceClient(HttpClient http)
+        public ProductServiceClient(HttpClient http) : base(http)
         {
-            _http = http ?? throw new ArgumentNullException(nameof(http));
+            _baseUrl = http.BaseAddress?.OriginalString ?? throw new ArgumentNullException(nameof(http.BaseAddress));
         }
 
         /// <summary>
@@ -19,19 +18,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Product dto object.</returns>
         public async Task<ProductDto?> GetProductByIdAsync(string productId)
         {
-            try
-            {
-                var response = await _http.GetAsync($"{_http.BaseAddress}{productId}");
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<ProductDto>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await GetAsync<ProductDto?>($"{_baseUrl}{productId}");
         }
 
         /// <summary>
@@ -41,19 +28,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Product id.</returns>
         public async Task<string?> GetProductIdBySKUAsync(string sku)
         {
-            try
-            {
-                var response = await _http.GetAsync($"{_http.BaseAddress}sku/{sku}");
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<string>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await GetAsync<string?>($"{_baseUrl}sku/{sku}");
         }
 
         /// <summary>
@@ -63,19 +38,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Added product id.</returns>
         public async Task<string?> AddProductAsync(ProductDto productDto)
         {
-            try
-            {
-                var response = await _http.PostAsJsonAsync(_http.BaseAddress, productDto);
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<string>();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return await PostAsync<ProductDto, string?>(_baseUrl, productDto);
         }
     }
 }
