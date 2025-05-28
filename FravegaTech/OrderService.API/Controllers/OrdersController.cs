@@ -25,10 +25,10 @@ namespace OrderService.API.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetAsync(int orderId)
         {
-            OrderTranslatedDto orderTranslatedDto = await _orderService.GetAndTranslateOrderAsync(orderId);
+            OrderTranslatedDto fullOrder = await _orderService.GetFullOrderAsync(orderId);
 
-            if (orderTranslatedDto is not null)
-                return Ok(orderTranslatedDto);
+            if (fullOrder is not null)
+                return Ok(fullOrder);
             else
                 return BadRequest();
         }

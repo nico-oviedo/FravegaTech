@@ -28,10 +28,16 @@ namespace OrderService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<OrderTranslatedDto> GetAndTranslateOrderAsync(int orderId)
+        public async Task<OrderTranslatedDto> GetFullOrderAsync(int orderId)
         {
             Order order = await _orderRepository.GetByOrderIdAsync(orderId);
-            return _mapper.Map<OrderTranslatedDto>(order);
+            var (buyerDto, orderProductsDtoList) = await _orderCreationService.GetBuyerAndProductsForOrderAsync(order);
+
+            var fullOrder = _mapper.Map<OrderTranslatedDto>(order);
+            fullOrder.Buyer = buyerDto;
+            fullOrder.Products = orderProductsDtoList;
+
+            return fullOrder;
         }
 
         /// <inheritdoc/>
@@ -83,7 +89,7 @@ namespace OrderService.Application.Services
                 var (isEventValid, isEventNotProcessed) = await _eventValidationService.IsEventValidAndNotProcessedAsync(orderId, eventDto);
 
                 if (isEventValid && isEventNotProcessed)
-                    return await ProcessNewEvent(orderId, eventDto);
+                    return await ProcessNewEventAsync(orderId, eventDto);
 
                 if (!isEventValid)
                 {
@@ -106,7 +112,7 @@ namespace OrderService.Application.Services
         /// <param name="orderId">Order id.</param>
         /// <param name="eventDto">Event dto object.</param>
         /// <returns>Event added dto object.</returns>
-        private async Task<EventAddedDto> ProcessNewEvent(int orderId, EventDto eventDto)
+        private async Task<EventAddedDto> ProcessNewEventAsync(int orderId, EventDto eventDto)
         {
             Event newEvent = _mapper.Map<Event>(eventDto);
             bool wasEventAdded = await _orderRepository.AddEventAsync(orderId, newEvent);
@@ -118,8 +124,8 @@ namespace OrderService.Application.Services
                 return null;
             }
 
-            OrderStatus? previousStatus = await _orderRepository.GetOrderStatus(orderId);
-            await _orderRepository.UpdateOrderStatus(orderId, newEvent.Type);
+            OrderStatus? previousStatus = await _orderRepository.GetOrderStatusAsync(orderId);
+            await _orderRepository.UpdateOrderStatusAsync(orderId, newEvent.Type);
 
             return _eventValidationService.CreateEventAddedDto(orderId, previousStatus.Value.ToString(), newEvent.Type.ToString());
         }

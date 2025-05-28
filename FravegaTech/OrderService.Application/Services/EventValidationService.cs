@@ -54,9 +54,9 @@ namespace OrderService.Application.Services
                     return (false, false);
                 }
 
-                Task<bool> isUniqueEventIdTask = _orderRepository.IsUniqueEventId(orderId, eventDto.Id);
-                Task<bool> isValidTransitionTask = GetOrderStatusAndValidateTransition(orderId, eventType);
-                Task<bool> isEventAlreadyProcessedTask = _orderRepository.IsEventAlreadyProcessed(orderId, eventType);
+                Task<bool> isUniqueEventIdTask = _orderRepository.IsUniqueEventIdAsync(orderId, eventDto.Id);
+                Task<bool> isValidTransitionTask = GetOrderStatusAndValidateTransitionAsync(orderId, eventType);
+                Task<bool> isEventAlreadyProcessedTask = _orderRepository.IsEventAlreadyProcessedAsync(orderId, eventType);
 
                 await Task.WhenAll(isUniqueEventIdTask, isValidTransitionTask, isEventAlreadyProcessedTask);
 
@@ -78,9 +78,9 @@ namespace OrderService.Application.Services
         /// <param name="orderId">Order id.</param>
         /// <param name="newStatus">New status.</param>
         /// <returns>True if it's a valid status transition, False if it's not.</returns>
-        private async Task<bool> GetOrderStatusAndValidateTransition(int orderId, OrderStatus newStatus)
+        private async Task<bool> GetOrderStatusAndValidateTransitionAsync(int orderId, OrderStatus newStatus)
         {
-            OrderStatus? currentStatus = await _orderRepository.GetOrderStatus(orderId);
+            OrderStatus? currentStatus = await _orderRepository.GetOrderStatusAsync(orderId);
             return IsValidTransition(currentStatus.Value, newStatus);
         }
 

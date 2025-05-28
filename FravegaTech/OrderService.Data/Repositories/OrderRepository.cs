@@ -56,7 +56,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsUniqueEventId(int orderId, string eventId)
+        public async Task<bool> IsUniqueEventIdAsync(int orderId, string eventId)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsEventAlreadyProcessed(int orderId, OrderStatus eventType)
+        public async Task<bool> IsEventAlreadyProcessedAsync(int orderId, OrderStatus eventType)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<OrderStatus?> GetOrderStatus(int orderId)
+        public async Task<OrderStatus?> GetOrderStatusAsync(int orderId)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<bool> UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus)
         {
             try
             {

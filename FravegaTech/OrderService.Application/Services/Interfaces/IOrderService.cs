@@ -7,11 +7,11 @@ namespace OrderService.Application.Services.Interfaces
     public interface IOrderService
     {
         /// <summary>
-        /// Gets and translate order
+        /// Gets full order
         /// </summary>
         /// <param name="orderId">Order id.</param>
-        /// <returns>Order translated object.</returns>
-        Task<OrderTranslatedDto> GetAndTranslateOrderAsync(int orderId);
+        /// <returns>Order translated dto object.</returns>
+        Task<OrderTranslatedDto> GetFullOrderAsync(int orderId);
 
         /// <summary>
         /// Searchs orders given some filters

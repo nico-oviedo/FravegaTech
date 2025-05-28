@@ -33,7 +33,7 @@ namespace OrderService.Data.Repositories
         /// <param name="orderId"><Order id./param>
         /// <param name="eventId">Event id.</param>
         /// <returns>True if event id does not exist in order, False the opposite.</returns>
-        Task<bool> IsUniqueEventId(int orderId, string eventId);
+        Task<bool> IsUniqueEventIdAsync(int orderId, string eventId);
 
         /// <summary>
         /// Validates if the event was already processed
@@ -41,14 +41,14 @@ namespace OrderService.Data.Repositories
         /// <param name="orderId">Order id.</param>
         /// <param name="eventType">Event type.</param>
         /// <returns>True if event was already processed, False the opposite.</returns>
-        Task<bool> IsEventAlreadyProcessed(int orderId, OrderStatus eventType);
+        Task<bool> IsEventAlreadyProcessedAsync(int orderId, OrderStatus eventType);
 
         /// <summary>
         /// Gets order status
         /// </summary>
         /// <param name="orderId">Order id.</param>
         /// <returns>Order status.</returns>
-        Task<OrderStatus?> GetOrderStatus(int orderId);
+        Task<OrderStatus?> GetOrderStatusAsync(int orderId);
 
         /// <summary>
         /// Adds new order
@@ -71,6 +71,6 @@ namespace OrderService.Data.Repositories
         /// <param name="orderId">Order id.</param>
         /// <param name="newStatus">New status.</param>
         /// <returns>True if the order was updated successfully, False if it's not.</returns>
-        Task<bool> UpdateOrderStatus(int orderId, OrderStatus newStatus);
+        Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus);
     }
 }

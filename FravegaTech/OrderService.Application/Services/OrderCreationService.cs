@@ -30,7 +30,7 @@ namespace OrderService.Application.Services
         public async Task<Order> CreateNewOrderAsync(OrderRequestDto orderRequestDto)
         {
             Order order = _mapper.Map<Order>(orderRequestDto);
-            var (orderId, buyerId, products) = await GetOrderExternalData(orderRequestDto);
+            var (orderId, buyerId, products) = await GetOrderExternalDataAsync(orderRequestDto);
 
             order.OrderId = orderId;
             order.BuyerId = buyerId;
@@ -40,12 +40,26 @@ namespace OrderService.Application.Services
             return order;
         }
 
+        /// <inheritdoc/>
+        public async Task<(BuyerDto?, List<OrderProductDto>)> GetBuyerAndProductsForOrderAsync(Order order)
+        {
+            Task<BuyerDto?> buyerDtoTask = _buyerServiceClient.GetBuyerByIdAsync(order.BuyerId);
+            Task<List<OrderProductDto>> orderProductsDtoTask = GetProductsListForOrderAsync(order.Products);
+
+            await Task.WhenAll(buyerDtoTask, orderProductsDtoTask);
+
+            BuyerDto? buyerDto = await buyerDtoTask;
+            List<OrderProductDto> orderProductsDto = await orderProductsDtoTask;
+
+            return (buyerDto, orderProductsDto);
+        }
+
         /// <summary>
         /// Gets order external data
         /// </summary>
         /// <param name="orderRequestDto">Order request dto.</param>
         /// <returns>Tuple with order id, buyer id and list of order product.</returns>
-        private async Task<(int, string?, List<OrderProduct>)> GetOrderExternalData(OrderRequestDto orderRequestDto)
+        private async Task<(int, string?, List<OrderProduct>)> GetOrderExternalDataAsync(OrderRequestDto orderRequestDto)
         {
             Task<int> orderIdTask = _counterService.GetNextSequenceValueAsync(nameof(Order.OrderId));
             Task<string?> buyerIdTask = _buyerServiceClient.AddBuyerAsync(orderRequestDto.Buyer);
@@ -69,12 +83,36 @@ namespace OrderService.Application.Services
         {
             var productTasks = orderProductsDto.Select(async product =>
             {
-                var productId = await _productServiceClient.AddProductAsync(product);
+                string? productId = await _productServiceClient.AddProductAsync(product);
                 return new OrderProduct() { ProductId = productId, Quantity = product.Quantity };
             });
 
             OrderProduct[] orderProducts = await Task.WhenAll(productTasks);
             return orderProducts.ToList();
+        }
+
+        /// <summary>
+        /// Gets order product dto list
+        /// </summary>
+        /// <param name="orderProducts">List of order products.</param>
+        /// <returns>List of order product dto object.</returns>
+        private async Task<List<OrderProductDto>> GetProductsListForOrderAsync(List<OrderProduct> orderProducts)
+        {
+            var productTasks = orderProducts.Select(async product =>
+            {
+                ProductDto? productDto = await _productServiceClient.GetProductByIdAsync(product.ProductId);
+                return new OrderProductDto()
+                {
+                    SKU = productDto.SKU,
+                    Name = productDto.Name,
+                    Description = productDto.Description,
+                    Price = productDto.Price,
+                    Quantity = product.Quantity
+                };
+            });
+
+            OrderProductDto[] orderProductsDto = await Task.WhenAll(productTasks);
+            return orderProductsDto.ToList();
         }
     }
 }
