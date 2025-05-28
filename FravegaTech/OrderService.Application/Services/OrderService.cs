@@ -1,75 +1,77 @@
 ﻿using AutoMapper;
-using CounterService.Services;
+using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using OrderService.Domain;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
-using SharedKernel.ServiceClients;
 
 namespace OrderService.Application.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly ICounterService _counterService;
         private readonly IEventService _eventService;
-        private readonly BuyerServiceClient _buyerServiceClient;
-        private readonly ProductServiceClient _productServiceClient;
+        private readonly IOrderValidationService _orderValidationService;
+        private readonly IOrderCreationService _orderCreationService;
         private readonly IMapper _mapper;
 
-        public OrderService(IOrderRepository orderRepository, ICounterService counterService, IEventService eventService,
-            BuyerServiceClient buyerServiceClient, ProductServiceClient productServiceClient, IMapper mapper)
+        public OrderService(IOrderRepository orderRepository, IEventService eventService,
+            IOrderValidationService orderValidationService, IOrderCreationService orderCreationService, IMapper mapper)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-            _counterService = counterService ?? throw new ArgumentNullException(nameof(counterService));
             _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
-            _buyerServiceClient = buyerServiceClient ?? throw new ArgumentNullException(nameof(buyerServiceClient));
-            _productServiceClient = productServiceClient ?? throw new ArgumentNullException(nameof(productServiceClient));
+            _orderValidationService = orderValidationService ?? throw new ArgumentNullException(nameof(orderValidationService));
+            _orderCreationService = orderCreationService ?? throw new ArgumentNullException(nameof(orderCreationService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         /// <inheritdoc/>
         public async Task<OrderTranslatedDto> GetAndTranslateOrderAsync(int orderId)
         {
-            Order order = await _orderRepository.GetOrderAsync(orderId);
+            Order order = await _orderRepository.GetByOrderIdAsync(orderId);
             return _mapper.Map<OrderTranslatedDto>(order);
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
+        public async Task<List<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
             string createdOnFrom, string createdOnTo)
         {
             //Armo filtros con los parametros que me llegan
             Dictionary<string, object> filters = new Dictionary<string, object>();
 
             var orders = await _orderRepository.SearchOrdersAsync(filters);
-            return _mapper.Map<IEnumerable<OrderDto>>(orders);
+            return _mapper.Map<List<OrderDto>>(orders);
         }
 
         /// <inheritdoc/>
-        public async Task<OrderCreatedDto> InsertNewOrderAsync(OrderRequestDto orderRequestDto)
+        public async Task<OrderCreatedDto> AddOrderAsync(OrderRequestDto orderRequestDto)
         {
-            //Validar que la clave: ExternalReferenceID + Channel no exista en la base de datos
+            try
+            {
+                if (!await _orderValidationService.IsOrderValidAsync(orderRequestDto))
+                {
+                    //Logueo error
+                    //genero objeto respuesta con mensaje
+                    return null;
+                }
 
-            //Validar que totalValue coincida con la sumatoria de los productos
+                Order newOrder = await _orderCreationService.CreateNewOrderAsync(orderRequestDto);
+                string? idOrderAdded = await _orderRepository.AddOrderAsync(newOrder);
 
-            //Inserto comprador si no existe, si existe obtengo el BuyerId
+                if (idOrderAdded is null)
+                {
+                    //Logueo error
+                    //genero objeto respuesta con mensaje
+                    return null;
+                }
 
-            //Inserto producto si no existe, si existe obtengo el ProductId
-
-            //Obtener el OrderId secuencial
-
-            Order order = _mapper.Map<Order>(orderRequestDto);
-            /*
-                BuyerId = "", //obtener
-                Products = null, //mapearlos
-                Events = null //servicio de eventos que te cree uno
-             */
-
-            //return await _orderRepository.InsertOrderAsync(order);
-
-            return null;
+                return _mapper.Map<OrderCreatedDto>(newOrder);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         /// <inheritdoc/>

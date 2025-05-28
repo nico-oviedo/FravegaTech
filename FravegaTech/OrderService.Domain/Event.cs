@@ -6,10 +6,6 @@ namespace OrderService.Domain
 {
     public class Event
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string _id { get; set; }
-
         [BsonElement("eventId")]
         public string EventId { get; set; }
 

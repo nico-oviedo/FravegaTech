@@ -24,15 +24,9 @@ namespace ProductService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetProductIdBySKUAsync(string sku)
-        {
-            return await _productRepository.GetProductIdBySKUAsync(sku);
-        }
-
-        /// <inheritdoc/>
         public async Task<string?> AddProductAsync(ProductDto productDto)
         {
-            string? productId = await GetProductIdBySKUAsync(productDto.SKU);
+            string? productId = await _productRepository.GetProductIdBySKUAsync(productDto.SKU);
 
             if (productId is not null)
                 return productId;

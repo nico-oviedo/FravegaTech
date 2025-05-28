@@ -29,12 +29,12 @@ namespace OrderService.Domain
         public string BuyerId { get; set; }
 
         [BsonElement("products")]
-        public IEnumerable<OrderProduct> Products { get; set; }
+        public List<OrderProduct> Products { get; set; }
 
         [BsonElement("status")]
         public OrderStatus Status { get; set; }
 
         [BsonElement("events")]
-        public IEnumerable<Event> Events { get; set; }
+        public List<Event> Events { get; set; }
     }
 }

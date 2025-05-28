@@ -15,7 +15,7 @@ namespace CounterService.Services
         }
 
         /// <inheritdoc/>
-        public int GetNextSequenceValue(string sequenceName)
+        public async Task<int> GetNextSequenceValueAsync(string sequenceName)
         {
             var filter = Builders<Counter>.Filter.Eq(c => c.SequenceName, sequenceName);
             var update = Builders<Counter>.Update.Inc(c => c.SequenceValue, 1);
@@ -25,7 +25,7 @@ namespace CounterService.Services
                 ReturnDocument = ReturnDocument.After
             };
 
-            var counter = _counters.FindOneAndUpdate(filter, update, options);
+            var counter = await _counters.FindOneAndUpdateAsync(filter, update, options);
             return counter.SequenceValue;
         }
     }

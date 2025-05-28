@@ -22,16 +22,6 @@ namespace SharedKernel.ServiceClients
         }
 
         /// <summary>
-        /// Gets product id by SKU from Product Service API
-        /// </summary>
-        /// <param name="sku">Product SKU.</param>
-        /// <returns>Product id.</returns>
-        public async Task<string?> GetProductIdBySKUAsync(string sku)
-        {
-            return await GetAsync<string?>($"{_baseUrl}sku/{sku}");
-        }
-
-        /// <summary>
         /// Sends product to Product Service API for addition
         /// </summary>
         /// <param name="productDto">Product dto object.</param>

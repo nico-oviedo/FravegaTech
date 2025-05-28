@@ -1,5 +1,6 @@
 using OrderService.Application.Mappers;
 using OrderService.Application.Services;
+using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using SharedKernel.ServiceClients;
 using CounterServices = CounterService.Services;
@@ -14,17 +15,19 @@ builder.Services.AddAutoMapper(typeof(EventProfile));
 
 builder.Services.AddHttpClient<BuyerServiceClient>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7185/v1/Buyers/");
+    client.BaseAddress = new Uri("https://localhost:7185/api/v1/Buyers/");
 });
 
 builder.Services.AddHttpClient<ProductServiceClient>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7172/v1/Products/");
+    client.BaseAddress = new Uri("https://localhost:7172/api/v1/Products/");
 });
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<CounterServices.ICounterService, CounterServices.CounterService>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IOrderValidationService, OrderValidationService>();
+builder.Services.AddScoped<IOrderCreationService, OrderCreationService>();
 builder.Services.AddScoped<IOrderService, OrderApplicationServices.OrderService>();
 
 builder.Services.AddControllers();

@@ -22,8 +22,13 @@ namespace SharedKernel.ServiceClients
             try
             {
                 var response = await _http.GetAsync(endpointUrl);
-                if (!response.IsSuccessStatusCode)
-                    return default;
+                response.EnsureSuccessStatusCode();
+
+                if (typeof(T) == typeof(string))
+                {
+                    var stringResult = await response.Content.ReadAsStringAsync();
+                    return (T)(object)stringResult;
+                }
 
                 return await response.Content.ReadFromJsonAsync<T>();
             }
@@ -46,8 +51,13 @@ namespace SharedKernel.ServiceClients
             try
             {
                 var response = await _http.PostAsJsonAsync(endpointUrl, data);
-                if (!response.IsSuccessStatusCode)
-                    return default;
+                response.EnsureSuccessStatusCode();
+
+                if (typeof(TResponse) == typeof(string))
+                {
+                    var stringResult = await response.Content.ReadAsStringAsync();
+                    return (TResponse)(object)stringResult;
+                }
 
                 return await response.Content.ReadFromJsonAsync<TResponse>();
             }

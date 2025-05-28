@@ -34,7 +34,7 @@ namespace BuyerService.Data.Repositories
         {
             try
             {
-                Buyer buyer = await _buyers.Find(b => b.DocumentNumber == documentNumber).FirstOrDefaultAsync();
+                Buyer buyer = await _buyers.Find(b => b.DocumentNumber.ToLower() == documentNumber.ToLower()).FirstOrDefaultAsync();
                 return buyer?._id;
             }
             catch (Exception ex)

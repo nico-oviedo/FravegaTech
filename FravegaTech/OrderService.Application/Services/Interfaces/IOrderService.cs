@@ -2,7 +2,7 @@
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
 
-namespace OrderService.Application.Services
+namespace OrderService.Application.Services.Interfaces
 {
     public interface IOrderService
     {
@@ -22,15 +22,15 @@ namespace OrderService.Application.Services
         /// <param name="createdOnFrom">Order created from.</param>
         /// <param name="createdOnTo">Order created to.</param>
         /// <returns>List of orders dto.</returns>
-        Task<IEnumerable<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
+        Task<List<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
             string createdOnFrom, string createdOnTo);
 
         /// <summary>
-        /// Inserts new order
+        /// Adds new order
         /// </summary>
         /// <param name="orderRequestDto">Order request dto object.</param>
         /// <returns>Order created dto object.</returns>
-        Task<OrderCreatedDto> InsertNewOrderAsync(OrderRequestDto orderRequestDto);
+        Task<OrderCreatedDto> AddOrderAsync(OrderRequestDto orderRequestDto);
 
         /// <summary>
         /// Add event to an order

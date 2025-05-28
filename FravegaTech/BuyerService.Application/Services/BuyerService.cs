@@ -24,15 +24,9 @@ namespace BuyerService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
-        {
-            return await _buyerRepository.GetBuyerIdByDocumentNumberAsync(documentNumber);
-        }
-
-        /// <inheritdoc/>
         public async Task<string?> AddBuyerAsync(BuyerDto buyerDto)
         {
-            string? buyerId = await GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
+            string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
 
             if (buyerId is not null)
                 return buyerId;

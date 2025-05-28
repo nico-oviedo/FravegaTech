@@ -5,7 +5,7 @@ using SharedKernel.Dtos;
 namespace ProductService.API.Controllers
 {
     [ApiController]
-    [Route("v1/[controller]")]
+    [Route("api/v1/[controller]")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -27,22 +27,6 @@ namespace ProductService.API.Controllers
 
             if (productDto is not null)
                 return Ok(productDto);
-            else
-                return NotFound();
-        }
-
-        /// <summary>
-        /// Gets product id by SKU
-        /// </summary>
-        /// <param name="sku">Product SKU.</param>
-        /// <returns>Product id.</returns>
-        [HttpGet("sku/{sku}")]
-        public async Task<IActionResult> GetBySKUAsync(string sku)
-        {
-            string? productId = await _productService.GetProductIdBySKUAsync(sku);
-
-            if (productId is not null)
-                return Ok(productId);
             else
                 return NotFound();
         }

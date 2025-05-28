@@ -16,7 +16,12 @@ namespace OrderService.Application.Mappers
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<OrderRequestDto, Order>()
-                .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => Enum.GetName(typeof(SourceChannel), src.Channel)));
+                .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => Enum.Parse<SourceChannel>(src.Channel)))
+                .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            CreateMap<Order, OrderCreatedDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.UpdatedOn, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<Order, OrderTranslatedDto>();
             // Hay que ver como mapear los dos campos a traducir

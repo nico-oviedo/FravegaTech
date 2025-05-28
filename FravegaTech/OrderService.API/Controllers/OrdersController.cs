@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OrderService.Application.Services;
+using OrderService.Application.Services.Interfaces;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
@@ -7,7 +7,7 @@ using SharedKernel.Dtos.Responses;
 namespace OrderService.API.Controllers
 {
     [ApiController]
-    [Route("v1/[controller]")]
+    [Route("api/v1/[controller]")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -46,7 +46,7 @@ namespace OrderService.API.Controllers
         public async Task<IActionResult> SearchAsync([FromQuery] int orderId, [FromQuery] string documentNumber, [FromQuery] string status,
             [FromQuery] string createdOnFrom, [FromQuery] string createdOnTo)
         {
-            IEnumerable<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
+            List<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
 
             if (orderDtos is not null)
                 return Ok(orderDtos);
@@ -62,7 +62,7 @@ namespace OrderService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] OrderRequestDto orderRequestDto)
         {
-            OrderCreatedDto orderCreatedDto = await _orderService.InsertNewOrderAsync(orderRequestDto);
+            OrderCreatedDto orderCreatedDto = await _orderService.AddOrderAsync(orderRequestDto);
 
             if (orderCreatedDto is not null)
                 return Ok(orderCreatedDto);

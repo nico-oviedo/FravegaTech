@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using OrderService.Domain;
+using OrderService.Domain.Enums;
 
 namespace OrderService.Data.Repositories
 {
@@ -16,7 +17,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Order> GetOrderAsync(int orderId)
+        public async Task<Order> GetByOrderIdAsync(int orderId)
         {
             try
             {
@@ -30,7 +31,7 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<Order>> SearchOrdersAsync(Dictionary<string, object> filters)
+        public async Task<List<Order>> SearchOrdersAsync(Dictionary<string, object> filters)
         {
             //Armar query segun los filtros y buscar
 
@@ -38,7 +39,24 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<string?> InsertOrderAsync(Order order)
+        public async Task<bool> IsUniqueExternalReferenceInChannelAsync(string externalReferenceId, SourceChannel channel)
+        {
+            try
+            {
+                Order order = await _orders
+                    .Find(o => o.ExternalReferenceId.ToLower() == externalReferenceId.ToLower() && o.Channel == channel)
+                    .FirstOrDefaultAsync();
+
+                return order is null;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> AddOrderAsync(Order order)
         {
             try
             {

@@ -7,6 +7,6 @@
         /// </summary>
         /// <param name="sequenceName">Sequence name.</param>
         /// <returns>Integer with the next sequence value.</returns>
-        int GetNextSequenceValue(string sequenceName);
+        Task<int> GetNextSequenceValueAsync(string sequenceName);
     }
 }

@@ -8,6 +8,6 @@ namespace SharedKernel.Dtos
 
         public string Status { get; set; }
 
-        public IEnumerable<EventDto> Events { get; set; }
+        public List<EventDto> Events { get; set; }
     }
 }

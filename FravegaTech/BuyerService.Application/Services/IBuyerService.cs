@@ -12,13 +12,6 @@ namespace BuyerService.Application.Services
         Task<BuyerDto> GetBuyerByIdAsync(string buyerId);
 
         /// <summary>
-        /// Gets buyer id by document number
-        /// </summary>
-        /// <param name="documentNumber">Buyer document number.</param>
-        /// <returns>Buyer id.</returns>
-        Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber);
-
-        /// <summary>
         /// Adds new buyer
         /// </summary>
         /// <param name="buyerDto">Buyer dto object.</param>

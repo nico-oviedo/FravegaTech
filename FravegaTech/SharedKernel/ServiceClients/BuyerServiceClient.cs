@@ -22,16 +22,6 @@ namespace SharedKernel.ServiceClients
         }
 
         /// <summary>
-        /// Gets buyer id by document number from Buyer Service API
-        /// </summary>
-        /// <param name="documentNumber">Buer document number.</param>
-        /// <returns>Buyer id.</returns>
-        public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
-        {
-            return await GetAsync<string?>($"{_baseUrl}documentnumber/{documentNumber}");
-        }
-
-        /// <summary>
         /// Sends buyer to Buyer Service API for addition
         /// </summary>
         /// <param name="buyerDto">Buyer dto object.</param>
