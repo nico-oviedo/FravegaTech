@@ -11,16 +11,16 @@ namespace OrderService.Application.Services
     public class OrderCreationService : IOrderCreationService
     {
         private readonly ICounterService _counterService;
-        private readonly IEventService _eventService;
+        private readonly IEventValidationService _eventValidationService;
         private readonly BuyerServiceClient _buyerServiceClient;
         private readonly ProductServiceClient _productServiceClient;
         private readonly IMapper _mapper;
 
-        public OrderCreationService(ICounterService counterService, IEventService eventService, BuyerServiceClient buyerServiceClient,
+        public OrderCreationService(ICounterService counterService, IEventValidationService eventValidationService, BuyerServiceClient buyerServiceClient,
             ProductServiceClient productServiceClient, IMapper mapper)
         {
             _counterService = counterService ?? throw new ArgumentNullException(nameof(counterService));
-            _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            _eventValidationService = eventValidationService ?? throw new ArgumentNullException(nameof(eventValidationService));
             _buyerServiceClient = buyerServiceClient ?? throw new ArgumentNullException(nameof(buyerServiceClient));
             _productServiceClient = productServiceClient ?? throw new ArgumentNullException(nameof(productServiceClient));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -35,7 +35,7 @@ namespace OrderService.Application.Services
             order.OrderId = orderId;
             order.BuyerId = buyerId;
             order.Products = products;
-            order.Events = [_eventService.CreateNewOrderEvent()];
+            order.Events = [_eventValidationService.CreateNewOrderEvent()];
 
             return order;
         }

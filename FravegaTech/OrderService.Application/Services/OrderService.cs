@@ -2,6 +2,7 @@
 using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using OrderService.Domain;
+using OrderService.Domain.Enums;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
@@ -11,16 +12,16 @@ namespace OrderService.Application.Services
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IEventService _eventService;
+        private readonly IEventValidationService _eventValidationService;
         private readonly IOrderValidationService _orderValidationService;
         private readonly IOrderCreationService _orderCreationService;
         private readonly IMapper _mapper;
 
-        public OrderService(IOrderRepository orderRepository, IEventService eventService,
+        public OrderService(IOrderRepository orderRepository, IEventValidationService eventValidationService,
             IOrderValidationService orderValidationService, IOrderCreationService orderCreationService, IMapper mapper)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-            _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            _eventValidationService = eventValidationService ?? throw new ArgumentNullException(nameof(eventValidationService));
             _orderValidationService = orderValidationService ?? throw new ArgumentNullException(nameof(orderValidationService));
             _orderCreationService = orderCreationService ?? throw new ArgumentNullException(nameof(orderCreationService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -75,15 +76,52 @@ namespace OrderService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<EventAddedDto> AddEventAsync(int orderId, EventDto eventDto)
+        public async Task<EventAddedDto> AddEventToOrderAsync(int orderId, EventDto eventDto)
         {
-            //Validar que el id sea unico
+            try
+            {
+                var (isEventValid, isEventNotProcessed) = await _eventValidationService.IsEventValidAndNotProcessedAsync(orderId, eventDto);
 
-            //Validar que la transicion de estado sea valida, si ya fue procesado ignorarlo y no hacer nada
+                if (isEventValid && isEventNotProcessed)
+                    return await ProcessNewEvent(orderId, eventDto);
 
-            //Guardar evento en la orden
+                if (!isEventValid)
+                {
+                    //Logueo error
+                    //genero objeto respuesta con mensaje
+                    return null;
+                }
+                else
+                    return _eventValidationService.CreateEventAddedDto(orderId, eventDto.Type, eventDto.Type);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
-            return null;
+        /// <summary>
+        /// Process new event
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="eventDto">Event dto object.</param>
+        /// <returns>Event added dto object.</returns>
+        private async Task<EventAddedDto> ProcessNewEvent(int orderId, EventDto eventDto)
+        {
+            Event newEvent = _mapper.Map<Event>(eventDto);
+            bool wasEventAdded = await _orderRepository.AddEventAsync(orderId, newEvent);
+
+            if (!wasEventAdded)
+            {
+                //Logueo error
+                //genero objeto respuesta con mensaje
+                return null;
+            }
+
+            OrderStatus? previousStatus = await _orderRepository.GetOrderStatus(orderId);
+            await _orderRepository.UpdateOrderStatus(orderId, newEvent.Type);
+
+            return _eventValidationService.CreateEventAddedDto(orderId, previousStatus.Value.ToString(), newEvent.Type.ToString());
         }
     }
 }

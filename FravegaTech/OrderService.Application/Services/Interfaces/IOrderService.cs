@@ -38,6 +38,6 @@ namespace OrderService.Application.Services.Interfaces
         /// <param name="orderId">Order id.</param>
         /// <param name="eventDto">Event dto object.</param>
         /// <returns>Event added dto object.</returns>
-        Task<EventAddedDto> AddEventAsync(int orderId, EventDto eventDto);
+        Task<EventAddedDto> AddEventToOrderAsync(int orderId, EventDto eventDto);
     }
 }

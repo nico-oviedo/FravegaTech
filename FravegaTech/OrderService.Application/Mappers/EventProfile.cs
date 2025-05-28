@@ -10,10 +10,12 @@ namespace OrderService.Application.Mappers
         public EventProfile()
         {
             CreateMap<Event, EventDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EventId))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<EventDto, Event>()
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => Enum.Parse<SourceChannel>(src.Type)));
+                .ForMember(dest => dest.EventId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => Enum.Parse<OrderStatus>(src.Type)));
         }
     }
 }

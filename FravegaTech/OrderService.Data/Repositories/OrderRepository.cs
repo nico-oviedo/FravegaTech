@@ -56,6 +56,58 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<bool> IsUniqueEventId(int orderId, string eventId)
+        {
+            try
+            {
+                bool existEventId = await _orders
+                    .Find(o => o.OrderId == orderId && o.Events.Any(e => e.EventId.ToLower() == eventId.ToLower()))
+                    .AnyAsync();
+
+                return !existEventId;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> IsEventAlreadyProcessed(int orderId, OrderStatus eventType)
+        {
+            try
+            {
+                bool eventProcessed = await _orders
+                    .Find(o => o.OrderId == orderId && o.Events.Any(e => e.Type == eventType))
+                    .AnyAsync();
+
+                return eventProcessed;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<OrderStatus?> GetOrderStatus(int orderId)
+        {
+            try
+            {
+                var result = await _orders
+                    .Find(o => o.OrderId == orderId)
+                    .Project(o => new { o.Status })
+                    .FirstOrDefaultAsync();
+
+                return result?.Status;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<string?> AddOrderAsync(Order order)
         {
             try
@@ -67,6 +119,40 @@ namespace OrderService.Data.Repositories
             {
                 //Loguear exception
                 return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> AddEventAsync(int orderId, Event newEvent)
+        {
+            try
+            {
+                var filter = Builders<Order>.Filter.Eq(o => o.OrderId, orderId);
+                var update = Builders<Order>.Update.Push(o => o.Events, newEvent);
+                var result = await _orders.UpdateOneAsync(filter, update);
+
+                return result.MatchedCount == 1 && result.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        {
+            try
+            {
+                var filter = Builders<Order>.Filter.Eq(o => o.OrderId, orderId);
+                var update = Builders<Order>.Update.Set(o => o.Status, newStatus);
+                var result = await _orders.UpdateOneAsync(filter, update);
+
+                return result.MatchedCount == 1 && result.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
         }
     }

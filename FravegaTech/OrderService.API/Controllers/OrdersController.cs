@@ -79,7 +79,7 @@ namespace OrderService.API.Controllers
         [HttpPost("{orderId}/events")]
         public async Task<IActionResult> AddEventAsync(int orderId, [FromBody] EventDto eventDto)
         {
-            EventAddedDto eventAddedDto = await _orderService.AddEventAsync(orderId, eventDto);
+            EventAddedDto eventAddedDto = await _orderService.AddEventToOrderAsync(orderId, eventDto);
 
             if (eventAddedDto is not null)
                 return Ok(eventAddedDto);

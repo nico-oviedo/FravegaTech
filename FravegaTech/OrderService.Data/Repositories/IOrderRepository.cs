@@ -28,10 +28,49 @@ namespace OrderService.Data.Repositories
         Task<bool> IsUniqueExternalReferenceInChannelAsync(string externalReferenceId, SourceChannel channel);
 
         /// <summary>
+        /// Validates if it's unique event id in order
+        /// </summary>
+        /// <param name="orderId"><Order id./param>
+        /// <param name="eventId">Event id.</param>
+        /// <returns>True if event id does not exist in order, False the opposite.</returns>
+        Task<bool> IsUniqueEventId(int orderId, string eventId);
+
+        /// <summary>
+        /// Validates if the event was already processed
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="eventType">Event type.</param>
+        /// <returns>True if event was already processed, False the opposite.</returns>
+        Task<bool> IsEventAlreadyProcessed(int orderId, OrderStatus eventType);
+
+        /// <summary>
+        /// Gets order status
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <returns>Order status.</returns>
+        Task<OrderStatus?> GetOrderStatus(int orderId);
+
+        /// <summary>
         /// Adds new order
         /// </summary>
         /// <param name="order">Order object.</param>
         /// <returns>Added order id.</returns>
         Task<string?> AddOrderAsync(Order order);
+
+        /// <summary>
+        /// Adds new event to an order
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="newEvent">New event.</param>
+        /// <returns>True if the event was added successfully, False if it's not.</returns>
+        Task<bool> AddEventAsync(int orderId, Event newEvent);
+
+        /// <summary>
+        /// Updates order status
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="newStatus">New status.</param>
+        /// <returns>True if the order was updated successfully, False if it's not.</returns>
+        Task<bool> UpdateOrderStatus(int orderId, OrderStatus newStatus);
     }
 }
