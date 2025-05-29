@@ -43,8 +43,8 @@ namespace OrderService.API.Controllers
         /// <param name="createdOnTo">Order created to.</param>
         /// <returns>List of order dto objects.</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchAsync([FromQuery] int orderId, [FromQuery] string documentNumber, [FromQuery] string status,
-            [FromQuery] string createdOnFrom, [FromQuery] string createdOnTo)
+        public async Task<IActionResult> SearchAsync([FromQuery] int? orderId, [FromQuery] string? documentNumber, [FromQuery] string? status,
+            [FromQuery] DateTime? createdOnFrom, [FromQuery] DateTime? createdOnTo)
         {
             List<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
 

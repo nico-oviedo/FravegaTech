@@ -22,8 +22,8 @@ namespace OrderService.Application.Services.Interfaces
         /// <param name="createdOnFrom">Order created from.</param>
         /// <param name="createdOnTo">Order created to.</param>
         /// <returns>List of orders dto.</returns>
-        Task<List<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
-            string createdOnFrom, string createdOnTo);
+        Task<List<OrderDto>> SearchOrdersAsync(int? orderId, string? documentNumber, string? status,
+            DateTime? createdOnFrom, DateTime? createdOnTo);
 
         /// <summary>
         /// Adds new order

@@ -14,16 +14,16 @@ namespace OrderService.Application.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IEventValidationService _eventValidationService;
         private readonly IOrderValidationService _orderValidationService;
-        private readonly IOrderCreationService _orderCreationService;
+        private readonly IOrderExternalDataService _orderExternalDataService;
         private readonly IMapper _mapper;
 
         public OrderService(IOrderRepository orderRepository, IEventValidationService eventValidationService,
-            IOrderValidationService orderValidationService, IOrderCreationService orderCreationService, IMapper mapper)
+            IOrderValidationService orderValidationService, IOrderExternalDataService orderExternalDataService, IMapper mapper)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
             _eventValidationService = eventValidationService ?? throw new ArgumentNullException(nameof(eventValidationService));
             _orderValidationService = orderValidationService ?? throw new ArgumentNullException(nameof(orderValidationService));
-            _orderCreationService = orderCreationService ?? throw new ArgumentNullException(nameof(orderCreationService));
+            _orderExternalDataService = orderExternalDataService ?? throw new ArgumentNullException(nameof(orderExternalDataService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -31,7 +31,7 @@ namespace OrderService.Application.Services
         public async Task<OrderTranslatedDto> GetFullOrderAsync(int orderId)
         {
             Order order = await _orderRepository.GetByOrderIdAsync(orderId);
-            var (buyerDto, orderProductsDtoList) = await _orderCreationService.GetBuyerAndProductsForOrderAsync(order);
+            var (buyerDto, orderProductsDtoList) = await _orderExternalDataService.GetBuyerDtoAndOrderProductsDtoFromOrderAsync(order);
 
             var fullOrder = _mapper.Map<OrderTranslatedDto>(order);
             fullOrder.Buyer = buyerDto;
@@ -41,14 +41,19 @@ namespace OrderService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<List<OrderDto>> SearchOrdersAsync(int orderId, string documentNumber, string status,
-            string createdOnFrom, string createdOnTo)
+        public async Task<List<OrderDto>> SearchOrdersAsync(int? orderId, string? documentNumber, string? status,
+            DateTime? createdOnFrom, DateTime? createdOnTo)
         {
-            //Armo filtros con los parametros que me llegan
-            Dictionary<string, object> filters = new Dictionary<string, object>();
+            string? buyerId = documentNumber is not null
+                ? await _orderExternalDataService.GetBuyerIdByDocumentNumberAsync(documentNumber)
+                : null;
 
-            var orders = await _orderRepository.SearchOrdersAsync(filters);
-            return _mapper.Map<List<OrderDto>>(orders);
+            OrderStatus? orderStatus = status is not null
+                && Enum.TryParse<OrderStatus>(status, out var statusOut)
+                ? statusOut : null;
+
+            var orders = await _orderRepository.SearchOrdersAsync(orderId, buyerId, orderStatus, createdOnFrom, createdOnTo);
+            return await ProcessOrdersListAsync(orders);
         }
 
         /// <inheritdoc/>
@@ -63,7 +68,7 @@ namespace OrderService.Application.Services
                     return null;
                 }
 
-                Order newOrder = await _orderCreationService.CreateNewOrderAsync(orderRequestDto);
+                Order newOrder = await CreateNewOrderAsync(orderRequestDto);
                 string? idOrderAdded = await _orderRepository.AddOrderAsync(newOrder);
 
                 if (idOrderAdded is null)
@@ -104,6 +109,47 @@ namespace OrderService.Application.Services
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Process orders in parallel
+        /// </summary>
+        /// <param name="orders">List of orders.</param>
+        /// <returns>List of orders dto.</returns>
+        private async Task<List<OrderDto>> ProcessOrdersListAsync(List<Order> orders)
+        {
+            var ordersListTasks = orders.Select(async order =>
+            {
+                var (buyerDto, orderProductsDto) = await _orderExternalDataService.GetBuyerDtoAndOrderProductsDtoFromOrderAsync(order);
+
+                OrderDto orderDto = _mapper.Map<OrderDto>(order);
+                orderDto.Buyer = buyerDto;
+                orderDto.Products = orderProductsDto;
+                orderDto.Events = new List<EventDto>() { orderDto.Events.Last() };
+
+                return orderDto;
+            });
+
+            OrderDto[] ordersDto = await Task.WhenAll(ordersListTasks);
+            return ordersDto.ToList();
+        }
+
+        /// <summary>
+        /// Creates new order object
+        /// </summary>
+        /// <param name="orderRequestDto">Order request dto.</param>
+        /// <returns>Order object.</returns>
+        private async Task<Order> CreateNewOrderAsync(OrderRequestDto orderRequestDto)
+        {
+            Order order = _mapper.Map<Order>(orderRequestDto);
+            var (orderId, buyerId, products) = await _orderExternalDataService.GetDataFromOrderRequestDtoAsync(orderRequestDto);
+
+            order.OrderId = orderId;
+            order.BuyerId = buyerId;
+            order.Products = products;
+            order.Events = [_eventValidationService.CreateNewOrderEvent()];
+
+            return order;
         }
 
         /// <summary>

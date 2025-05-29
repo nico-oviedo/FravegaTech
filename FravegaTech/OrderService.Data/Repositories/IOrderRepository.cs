@@ -13,13 +13,6 @@ namespace OrderService.Data.Repositories
         Task<Order> GetByOrderIdAsync(int orderId);
 
         /// <summary>
-        /// Searchs orders given some filters
-        /// </summary>
-        /// <param name="filters">Query filters.</param>
-        /// <returns>List of orders.</returns>
-        Task<List<Order>> SearchOrdersAsync(Dictionary<string, object> filters);
-
-        /// <summary>
         /// Validates if it's unique the external reference in channel
         /// </summary>
         /// <param name="externalReferenceId">External reference id.</param>
@@ -72,5 +65,17 @@ namespace OrderService.Data.Repositories
         /// <param name="newStatus">New status.</param>
         /// <returns>True if the order was updated successfully, False if it's not.</returns>
         Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus);
+
+        /// <summary>
+        /// Searchs orders given some filters
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="buyerId">Order buyer id.</param>
+        /// <param name="status">Order status.</param>
+        /// <param name="createdOnFrom">Order created from.</param>
+        /// <param name="createdOnTo">Order created to.</param>
+        /// <returns>List of orders.</returns>
+        Task<List<Order>> SearchOrdersAsync(int? orderId, string? buyerId, OrderStatus? status,
+            DateTime? createdOnFrom, DateTime? createdOnTo);
     }
 }

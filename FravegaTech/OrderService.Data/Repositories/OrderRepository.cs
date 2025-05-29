@@ -8,12 +8,14 @@ namespace OrderService.Data.Repositories
     public class OrderRepository : IOrderRepository
     {
         private readonly IMongoCollection<Order> _orders;
+        private readonly TimeZoneInfo _timeZoneArg;
 
         public OrderRepository(IConfiguration config)
         {
             var client = new MongoClient(config.GetConnectionString("MongoDB"));
             var database = client.GetDatabase(config.GetConnectionString("OrderDatabase"));
             _orders = database.GetCollection<Order>(config.GetConnectionString("OrdersCollection"));
+            _timeZoneArg = TimeZoneInfo.FindSystemTimeZoneById(config.GetSection("TimeZones")["TimeZoneARG"]!);
         }
 
         /// <inheritdoc/>
@@ -28,14 +30,6 @@ namespace OrderService.Data.Repositories
                 //Loguear exception
                 return null;
             }
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Order>> SearchOrdersAsync(Dictionary<string, object> filters)
-        {
-            //Armar query segun los filtros y buscar
-
-            return null;
         }
 
         /// <inheritdoc/>
@@ -112,6 +106,7 @@ namespace OrderService.Data.Repositories
         {
             try
             {
+                order.PurchaseDate = TimeZoneInfo.ConvertTimeToUtc(order.PurchaseDate, _timeZoneArg);
                 await _orders.InsertOneAsync(order);
                 return order._id;
             }
@@ -154,6 +149,75 @@ namespace OrderService.Data.Repositories
             {
                 return false;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Order>> SearchOrdersAsync(int? orderId, string? buyerId, OrderStatus? status,
+            DateTime? createdOnFrom, DateTime? createdOnTo)
+        {
+            try
+            {
+                var builder = Builders<Order>.Filter;
+                var finalFilter = builder.And(GenerateFiltersOr(orderId, buyerId, status), GenerateFiltersAnd(createdOnFrom, createdOnTo));
+
+                return await _orders
+                    .Find(finalFilter)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception();
+            }
+        }
+
+        /// <summary>
+        /// Generates Filters "Or"
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="buyerId">Order buyer id.</param>
+        /// <param name="status">Order status.</param>
+        /// <returns>Definition with "Or" filters.</returns>
+        private FilterDefinition<Order> GenerateFiltersOr(int? orderId, string? buyerId, OrderStatus? status)
+        {
+            var builder = Builders<Order>.Filter;
+            var filtersOr = new List<FilterDefinition<Order>>();
+
+            if (orderId is not null)
+                filtersOr.Add(builder.Eq(o => o.OrderId, orderId));
+
+            if (!string.IsNullOrEmpty(buyerId))
+                filtersOr.Add(builder.Eq(o => o.BuyerId, buyerId));
+
+            if (status is not null)
+                filtersOr.Add(builder.Eq(o => o.Status, status));
+
+            return filtersOr.Any() ? builder.Or(filtersOr) : builder.Empty;
+        }
+
+        /// <summary>
+        /// Generates Filters "And"
+        /// </summary>
+        /// <param name="createdOnFrom">Order created from.</param>
+        /// <param name="createdOnTo">Order created to.</param>
+        /// <returns>Definition with "And" filters.</returns>
+        private FilterDefinition<Order> GenerateFiltersAnd(DateTime? createdOnFrom, DateTime? createdOnTo)
+        {
+            var builder = Builders<Order>.Filter;
+            var filtersAnd = new List<FilterDefinition<Order>>();
+
+            if (createdOnFrom.HasValue)
+            {
+                var utcFrom = TimeZoneInfo.ConvertTimeToUtc(createdOnFrom.Value, _timeZoneArg);
+                filtersAnd.Add(builder.Gte(o => o.PurchaseDate, utcFrom));
+            }
+
+            if (createdOnTo.HasValue)
+            {
+                var utcTo = TimeZoneInfo.ConvertTimeToUtc(createdOnTo.Value, _timeZoneArg);
+                filtersAnd.Add(builder.Lte(o => o.PurchaseDate, utcTo));
+            }
+
+            return filtersAnd.Any() ? builder.And(filtersAnd) : builder.Empty;
         }
     }
 }

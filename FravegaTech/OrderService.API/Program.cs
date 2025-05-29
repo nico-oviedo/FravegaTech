@@ -27,7 +27,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<CounterServices.ICounterService, CounterServices.CounterService>();
 builder.Services.AddScoped<IEventValidationService, EventValidationService>();
 builder.Services.AddScoped<IOrderValidationService, OrderValidationService>();
-builder.Services.AddScoped<IOrderCreationService, OrderCreationService>();
+builder.Services.AddScoped<IOrderExternalDataService, OrderExternalDataService>();
 builder.Services.AddScoped<IOrderService, OrderApplicationServices.OrderService>();
 
 builder.Services.AddControllers();

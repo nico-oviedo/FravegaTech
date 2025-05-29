@@ -32,6 +32,22 @@ namespace BuyerService.API.Controllers
         }
 
         /// <summary>
+        /// Gets buyer id by document number
+        /// </summary>
+        /// <param name="documentNumber">Buyer document number.</param>
+        /// <returns>Buyer id.</returns>
+        [HttpGet("documentnumber/{documentNumber}")]
+        public async Task<IActionResult> GetByDocumentNumberAsync(string documentNumber)
+        {
+            string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
+
+            if (buyerId is not null)
+                return Ok(buyerId);
+            else
+                return NotFound();
+        }
+
+        /// <summary>
         /// Adds new buyer
         /// </summary>
         /// <param name="buyerDto">Buyer dto object.</param>
