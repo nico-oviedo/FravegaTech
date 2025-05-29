@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Services;
 using SharedKernel.Dtos;
+using SharedKernel.Exceptions;
 
 namespace ProductService.API.Controllers
 {
@@ -9,10 +10,12 @@ namespace ProductService.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(IProductService productService)
+        public ProductsController(IProductService productService, ILogger<ProductsController> logger)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -23,12 +26,26 @@ namespace ProductService.API.Controllers
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetAsync(string productId)
         {
-            ProductDto productDto = await _productService.GetProductByIdAsync(productId);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
+                ProductDto productDto = await _productService.GetProductByIdAsync(productId);
 
-            if (productDto is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(GetAsync)}.");
                 return Ok(productDto);
-            else
-                return NotFound();
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("Producto no fue encontrado.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al obtener los datos del producto.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -39,12 +56,22 @@ namespace ProductService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDto productDto)
         {
-            string? productId = await _productService.AddProductAsync(productDto);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(PostAsync)}.");
+                string productId = await _productService.AddProductAsync(productDto);
 
-            if (productId is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(PostAsync)}.");
                 return Ok(productId);
-            else
-                return BadRequest();
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al ingresar un nuevo producto en el sistema.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
     }
 }

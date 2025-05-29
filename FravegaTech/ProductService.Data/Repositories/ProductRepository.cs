@@ -1,18 +1,22 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using ProductService.Domain;
+using SharedKernel.Exceptions;
 
 namespace ProductService.Data.Repositories
 {
     public class ProductRepository : IProductRepository
     {
         private readonly IMongoCollection<Product> _products;
+        private readonly ILogger<ProductRepository> _logger;
 
-        public ProductRepository(IConfiguration config)
+        public ProductRepository(IConfiguration config, ILogger<ProductRepository> logger)
         {
             var client = new MongoClient(config.GetConnectionString("MongoDB"));
             var database = client.GetDatabase(config.GetConnectionString("ProductDatabase"));
             _products = database.GetCollection<Product>(config.GetConnectionString("ProductsCollection"));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -24,8 +28,8 @@ namespace ProductService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to get Product by id from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetProductByIdAsync)}", ex);
             }
         }
 
@@ -39,13 +43,13 @@ namespace ProductService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to get ProductId by SKU from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetProductIdBySKUAsync)}", ex);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<string?> AddProductAsync(Product product)
+        public async Task<string> AddProductAsync(Product product)
         {
             try
             {
@@ -54,8 +58,8 @@ namespace ProductService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to insert new Product in database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(AddProductAsync)}", ex);
             }
         }
     }

@@ -23,6 +23,6 @@ namespace ProductService.Data.Repositories
         /// </summary>
         /// <param name="product">Product object.</param>
         /// <returns>Inserted product id.</returns>
-        Task<string?> AddProductAsync(Product product);
+        Task<string> AddProductAsync(Product product);
     }
 }

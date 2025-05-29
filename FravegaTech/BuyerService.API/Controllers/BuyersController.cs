@@ -28,12 +28,10 @@ namespace BuyerService.API.Controllers
         {
             try
             {
-                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(GetAsync)}.");
-
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
                 BuyerDto buyerDto = await _buyerService.GetBuyerByIdAsync(buyerId);
 
-                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(GetAsync)}.");
-
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(GetAsync)}.");
                 return Ok(buyerDto);
             }
             catch (NotFoundException)
@@ -60,12 +58,10 @@ namespace BuyerService.API.Controllers
         {
             try
             {
-                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(GetByDocumentNumberAsync)}.");
-
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetByDocumentNumberAsync)}.");
                 string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
 
-                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(GetByDocumentNumberAsync)}.");
-
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(GetByDocumentNumberAsync)}.");
                 return Ok(buyerId);
             }
             catch (DataAccessException)
@@ -88,12 +84,10 @@ namespace BuyerService.API.Controllers
         {
             try
             {
-                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(PostAsync)}.");
-
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(PostAsync)}.");
                 string buyerId = await _buyerService.AddBuyerAsync(buyerDto);
 
-                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(PostAsync)}.");
-
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(PostAsync)}.");
                 return Ok(buyerId);
             }
             catch (DataAccessException)

@@ -16,6 +16,6 @@ namespace ProductService.Application.Services
         /// </summary>
         /// <param name="productDto">Product dto object.</param>
         /// <returns>Added product id.</returns>
-        Task<string?> AddProductAsync(ProductDto productDto);
+        Task<string> AddProductAsync(ProductDto productDto);
     }
 }
