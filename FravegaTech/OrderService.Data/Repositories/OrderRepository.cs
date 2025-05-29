@@ -106,7 +106,10 @@ namespace OrderService.Data.Repositories
         {
             try
             {
-                order.PurchaseDate = TimeZoneInfo.ConvertTimeToUtc(order.PurchaseDate, _timeZoneArg);
+                order.PurchaseDate = order.PurchaseDate.Kind != DateTimeKind.Utc
+                    ? TimeZoneInfo.ConvertTimeToUtc(order.PurchaseDate, _timeZoneArg)
+                    : order.PurchaseDate;
+
                 await _orders.InsertOneAsync(order);
                 return order._id;
             }
@@ -122,6 +125,10 @@ namespace OrderService.Data.Repositories
         {
             try
             {
+                newEvent.Date = newEvent.Date.Kind != DateTimeKind.Utc
+                    ? TimeZoneInfo.ConvertTimeToUtc(newEvent.Date, _timeZoneArg)
+                    : newEvent.Date;
+
                 var filter = Builders<Order>.Filter.Eq(o => o.OrderId, orderId);
                 var update = Builders<Order>.Update.Push(o => o.Events, newEvent);
                 var result = await _orders.UpdateOneAsync(filter, update);
@@ -158,7 +165,8 @@ namespace OrderService.Data.Repositories
             try
             {
                 var builder = Builders<Order>.Filter;
-                var finalFilter = builder.And(GenerateFiltersOr(orderId, buyerId, status), GenerateFiltersAnd(createdOnFrom, createdOnTo));
+                var finalFilter = builder.And(BuildORFiltersForSearchOrders(orderId, buyerId, status),
+                    BuildANDFiltersForSearchOrders(createdOnFrom, createdOnTo));
 
                 return await _orders
                     .Find(finalFilter)
@@ -171,13 +179,13 @@ namespace OrderService.Data.Repositories
         }
 
         /// <summary>
-        /// Generates Filters "Or"
+        /// Builds "Or" filters for search orders
         /// </summary>
         /// <param name="orderId">Order id.</param>
         /// <param name="buyerId">Order buyer id.</param>
         /// <param name="status">Order status.</param>
         /// <returns>Definition with "Or" filters.</returns>
-        private FilterDefinition<Order> GenerateFiltersOr(int? orderId, string? buyerId, OrderStatus? status)
+        private FilterDefinition<Order> BuildORFiltersForSearchOrders(int? orderId, string? buyerId, OrderStatus? status)
         {
             var builder = Builders<Order>.Filter;
             var filtersOr = new List<FilterDefinition<Order>>();
@@ -195,12 +203,12 @@ namespace OrderService.Data.Repositories
         }
 
         /// <summary>
-        /// Generates Filters "And"
+        /// Builds "And" filters for search orders
         /// </summary>
         /// <param name="createdOnFrom">Order created from.</param>
         /// <param name="createdOnTo">Order created to.</param>
         /// <returns>Definition with "And" filters.</returns>
-        private FilterDefinition<Order> GenerateFiltersAnd(DateTime? createdOnFrom, DateTime? createdOnTo)
+        private FilterDefinition<Order> BuildANDFiltersForSearchOrders(DateTime? createdOnFrom, DateTime? createdOnTo)
         {
             var builder = Builders<Order>.Filter;
             var filtersAnd = new List<FilterDefinition<Order>>();
