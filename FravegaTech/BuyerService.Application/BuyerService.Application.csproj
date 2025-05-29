@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BuyerService.Data\BuyerService.Data.csproj" />
-    <ProjectReference Include="..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>

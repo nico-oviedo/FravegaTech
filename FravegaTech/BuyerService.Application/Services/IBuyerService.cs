@@ -23,6 +23,6 @@ namespace BuyerService.Application.Services
         /// </summary>
         /// <param name="buyerDto">Buyer dto object.</param>
         /// <returns>Added buyer id.</returns>
-        Task<string?> AddBuyerAsync(BuyerDto buyerDto);
+        Task<string> AddBuyerAsync(BuyerDto buyerDto);
     }
 }

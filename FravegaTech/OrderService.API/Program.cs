@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json");
 
+builder.Services.AddLogging();
 builder.Services.AddAutoMapper(typeof(OrderProfile));
 builder.Services.AddAutoMapper(typeof(EventProfile));
 

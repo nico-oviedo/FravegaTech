@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BuyerService.Domain\BuyerService.Domain.csproj" />
+    <ProjectReference Include="..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>

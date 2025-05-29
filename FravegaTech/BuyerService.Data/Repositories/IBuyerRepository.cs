@@ -23,6 +23,6 @@ namespace BuyerService.Data.Repositories
         /// </summary>
         /// <param name="buyer">Buyer object.</param>
         /// <returns>Added buyer id.</returns>
-        Task<string?> AddBuyerAsync(Buyer buyer);
+        Task<string> AddBuyerAsync(Buyer buyer);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BuyerService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Dtos;
+using SharedKernel.Exceptions;
 
 namespace BuyerService.API.Controllers
 {
@@ -9,10 +10,12 @@ namespace BuyerService.API.Controllers
     public class BuyersController : ControllerBase
     {
         private readonly IBuyerService _buyerService;
+        private readonly ILogger<BuyersController> _logger;
 
-        public BuyersController(IBuyerService buyerService)
+        public BuyersController(IBuyerService buyerService, ILogger<BuyersController> logger)
         {
             _buyerService = buyerService ?? throw new ArgumentNullException(nameof(buyerService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -23,12 +26,28 @@ namespace BuyerService.API.Controllers
         [HttpGet("{buyerId}")]
         public async Task<IActionResult> GetAsync(string buyerId)
         {
-            BuyerDto buyerDto = await _buyerService.GetBuyerByIdAsync(buyerId);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(GetAsync)}.");
 
-            if (buyerDto is not null)
+                BuyerDto buyerDto = await _buyerService.GetBuyerByIdAsync(buyerId);
+
+                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(GetAsync)}.");
+
                 return Ok(buyerDto);
-            else
-                return NotFound();
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("Comprador no fue encontrado.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al obtener los datos del comprador.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -39,12 +58,24 @@ namespace BuyerService.API.Controllers
         [HttpGet("documentnumber/{documentNumber}")]
         public async Task<IActionResult> GetByDocumentNumberAsync(string documentNumber)
         {
-            string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(GetByDocumentNumberAsync)}.");
 
-            if (buyerId is not null)
+                string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
+
+                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(GetByDocumentNumberAsync)}.");
+
                 return Ok(buyerId);
-            else
-                return NotFound();
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al obtener el id del comprador.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -55,12 +86,24 @@ namespace BuyerService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] BuyerDto buyerDto)
         {
-            string? buyerId = await _buyerService.AddBuyerAsync(buyerDto);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {nameof(BuyersController)}:{nameof(PostAsync)}.");
 
-            if (buyerId is not null)
+                string buyerId = await _buyerService.AddBuyerAsync(buyerDto);
+
+                _logger.LogInformation($"END endpoint call {nameof(BuyersController)}.{nameof(PostAsync)}.");
+
                 return Ok(buyerId);
-            else
-                return BadRequest();
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al ingresar un nuevo comprador en el sistema.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
     }
 }

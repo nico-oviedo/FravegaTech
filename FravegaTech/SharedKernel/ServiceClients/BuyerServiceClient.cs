@@ -1,14 +1,17 @@
-﻿using SharedKernel.Dtos;
+﻿using Microsoft.Extensions.Logging;
+using SharedKernel.Dtos;
 
 namespace SharedKernel.ServiceClients
 {
     public class BuyerServiceClient : HttpServiceClient
     {
         private readonly string _baseUrl;
+        private readonly ILogger<BuyerServiceClient> _logger;
 
-        public BuyerServiceClient(HttpClient http) : base(http)
+        public BuyerServiceClient(HttpClient http, ILogger<BuyerServiceClient> logger) : base(http, logger)
         {
             _baseUrl = http.BaseAddress?.OriginalString ?? throw new ArgumentNullException(nameof(http.BaseAddress));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -18,6 +21,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Buyer dto object.</returns>
         public async Task<BuyerDto?> GetBuyerByIdAsync(string buyerId)
         {
+            _logger.LogInformation($"Calling BuyerService API - {nameof(GetBuyerByIdAsync)}.");
             return await GetAsync<BuyerDto?>($"{_baseUrl}{buyerId}");
         }
 
@@ -28,6 +32,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Buyer id.</returns>
         public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
         {
+            _logger.LogInformation($"Calling BuyerService API - {nameof(GetBuyerIdByDocumentNumberAsync)}.");
             return await GetAsync<string?>($"{_baseUrl}documentnumber/{documentNumber}");
         }
 
@@ -38,6 +43,7 @@ namespace SharedKernel.ServiceClients
         /// <returns>Added buyer id.</returns>
         public async Task<string?> AddBuyerAsync(BuyerDto buyerDto)
         {
+            _logger.LogInformation($"Calling BuyerService API - {nameof(AddBuyerAsync)}.");
             return await PostAsync<BuyerDto, string?>(_baseUrl, buyerDto);
         }
     }

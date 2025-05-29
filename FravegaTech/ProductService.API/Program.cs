@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json");
 
+builder.Services.AddLogging();
 builder.Services.AddAutoMapper(typeof(ProductProfile));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();

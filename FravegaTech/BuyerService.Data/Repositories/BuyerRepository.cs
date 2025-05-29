@@ -1,18 +1,22 @@
 ﻿using BuyerService.Domain;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using SharedKernel.Exceptions;
 
 namespace BuyerService.Data.Repositories
 {
     public class BuyerRepository : IBuyerRepository
     {
         private readonly IMongoCollection<Buyer> _buyers;
+        private readonly ILogger<BuyerRepository> _logger;
 
-        public BuyerRepository(IConfiguration config)
+        public BuyerRepository(IConfiguration config, ILogger<BuyerRepository> logger)
         {
             var client = new MongoClient(config.GetConnectionString("MongoDB"));
             var database = client.GetDatabase(config.GetConnectionString("BuyerDatabase"));
             _buyers = database.GetCollection<Buyer>(config.GetConnectionString("BuyersCollection"));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -24,8 +28,8 @@ namespace BuyerService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to get Buyer by id from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetBuyerByIdAsync)}", ex);
             }
         }
 
@@ -39,13 +43,13 @@ namespace BuyerService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to get BuyerId by document number from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetBuyerIdByDocumentNumberAsync)}", ex);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<string?> AddBuyerAsync(Buyer buyer)
+        public async Task<string> AddBuyerAsync(Buyer buyer)
         {
             try
             {
@@ -54,8 +58,8 @@ namespace BuyerService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to insert new Buyer in database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(AddBuyerAsync)}", ex);
             }
         }
     }
