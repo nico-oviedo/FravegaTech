@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using OrderService.Domain;
@@ -6,6 +7,7 @@ using OrderService.Domain.Enums;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
+using SharedKernel.Exceptions;
 
 namespace OrderService.Application.Services
 {
@@ -16,44 +18,79 @@ namespace OrderService.Application.Services
         private readonly IOrderValidationService _orderValidationService;
         private readonly IOrderExternalDataService _orderExternalDataService;
         private readonly IMapper _mapper;
+        private readonly ILogger<OrderService> _logger;
 
-        public OrderService(IOrderRepository orderRepository, IEventValidationService eventValidationService,
-            IOrderValidationService orderValidationService, IOrderExternalDataService orderExternalDataService, IMapper mapper)
+        public OrderService(IOrderRepository orderRepository, IEventValidationService eventValidationService, IOrderValidationService orderValidationService,
+            IOrderExternalDataService orderExternalDataService, IMapper mapper, ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
             _eventValidationService = eventValidationService ?? throw new ArgumentNullException(nameof(eventValidationService));
             _orderValidationService = orderValidationService ?? throw new ArgumentNullException(nameof(orderValidationService));
             _orderExternalDataService = orderExternalDataService ?? throw new ArgumentNullException(nameof(orderExternalDataService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<OrderTranslatedDto> GetFullOrderAsync(int orderId)
         {
-            Order order = await _orderRepository.GetByOrderIdAsync(orderId);
-            var (buyerDto, orderProductsDtoList) = await _orderExternalDataService.GetBuyerDtoAndOrderProductsDtoFromOrderAsync(order);
+            try
+            {
+                _logger.LogInformation($"Trying to get Order with id: {orderId}.");
+                Order order = await _orderRepository.GetByOrderIdAsync(orderId);
 
-            var fullOrder = _mapper.Map<OrderTranslatedDto>(order);
-            fullOrder.Buyer = buyerDto;
-            fullOrder.Products = orderProductsDtoList;
+                if (order is null)
+                {
+                    _logger.LogError($"Order with id {orderId} was not found.");
+                    throw new NotFoundException(nameof(order), $"{GetType().Name}:{nameof(GetFullOrderAsync)}");
+                }
 
-            return fullOrder;
+                var (buyerDto, orderProductsDtoList) = await _orderExternalDataService.GetBuyerDtoAndOrderProductsDtoFromOrderAsync(order);
+                var fullOrder = _mapper.Map<OrderTranslatedDto>(order);
+                fullOrder.Buyer = buyerDto;
+                fullOrder.Products = orderProductsDtoList;
+
+                _logger.LogInformation($"Successfully get Order with id: {orderId}.");
+                return fullOrder;
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                _logger.LogError(ex, $"Failed to map Order to OrderTranslatedDto. {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <inheritdoc/>
         public async Task<List<OrderDto>> SearchOrdersAsync(int? orderId, string? documentNumber, string? status,
             DateTime? createdOnFrom, DateTime? createdOnTo)
         {
-            string? buyerId = documentNumber is not null
-                ? await _orderExternalDataService.GetBuyerIdByDocumentNumberAsync(documentNumber)
-                : null;
+            try
+            {
+                _logger.LogInformation("Starting to search Orders with given filters.");
 
-            OrderStatus? orderStatus = status is not null
-                && Enum.TryParse<OrderStatus>(status, out var statusOut)
-                ? statusOut : null;
+                string? buyerId = documentNumber is not null
+                    ? await _orderExternalDataService.GetBuyerIdByDocumentNumberAsync(documentNumber)
+                    : null;
 
-            var orders = await _orderRepository.SearchOrdersAsync(orderId, buyerId, orderStatus, createdOnFrom, createdOnTo);
-            return await ProcessOrdersListAsync(orders);
+                OrderStatus? orderStatus = status is not null
+                    && Enum.TryParse<OrderStatus>(status, out var statusOut)
+                    ? statusOut : null;
+
+                var orders = await _orderRepository.SearchOrdersAsync(orderId, buyerId, orderStatus, createdOnFrom, createdOnTo);
+                if (orders is null || !orders.Any())
+                {
+                    _logger.LogError("No Orders were found with given filters.");
+                    throw new NotFoundException(nameof(orders), $"{GetType().Name}:{nameof(SearchOrdersAsync)}");
+                }
+
+                _logger.LogInformation($"{orders.Count} Orders were found with given filters.");
+                return await ProcessOrdersListAsync(orders);
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                _logger.LogError(ex, $"Failed to map Orders to OrdersDto. {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <inheritdoc/>
@@ -61,28 +98,24 @@ namespace OrderService.Application.Services
         {
             try
             {
+                _logger.LogInformation("Trying to add new Order.");
+
                 if (!await _orderValidationService.IsOrderValidAsync(orderRequestDto))
                 {
-                    //Logueo error
-                    //genero objeto respuesta con mensaje
-                    return null;
+                    _logger.LogError("Invalid Order.");
+                    throw new BusinessValidationException("Order", $"{GetType().Name}:{nameof(AddOrderAsync)}");
                 }
 
                 Order newOrder = await CreateNewOrderAsync(orderRequestDto);
-                string? idOrderAdded = await _orderRepository.AddOrderAsync(newOrder);
+                string addedOrderId = await _orderRepository.AddOrderAsync(newOrder);
 
-                if (idOrderAdded is null)
-                {
-                    //Logueo error
-                    //genero objeto respuesta con mensaje
-                    return null;
-                }
-
+                _logger.LogInformation($"Successfully added new Order with id {addedOrderId}.");
                 return _mapper.Map<OrderCreatedDto>(newOrder);
             }
-            catch (Exception ex)
+            catch (AutoMapperMappingException ex)
             {
-                return null;
+                _logger.LogError(ex, $"Failed to map Order to OrderCreatedDto. {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -91,6 +124,7 @@ namespace OrderService.Application.Services
         {
             try
             {
+                _logger.LogInformation($"Trying to add new Event to Order with id {orderId}.");
                 var (isEventValid, isEventNotProcessed) = await _eventValidationService.IsEventValidAndNotProcessedAsync(orderId, eventDto);
 
                 if (isEventValid && isEventNotProcessed)
@@ -98,16 +132,16 @@ namespace OrderService.Application.Services
 
                 if (!isEventValid)
                 {
-                    //Logueo error
-                    //genero objeto respuesta con mensaje
-                    return null;
+                    _logger.LogError("Invalid Event.");
+                    throw new BusinessValidationException("Event", $"{GetType().Name}:{nameof(AddEventToOrderAsync)}");
                 }
                 else
                     return _eventValidationService.CreateEventAddedDto(orderId, eventDto.Type, eventDto.Type);
             }
             catch (Exception ex)
             {
-                return null;
+                _logger.LogError(ex, $"Failed to add new Event to Order with id {orderId}. {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -118,6 +152,8 @@ namespace OrderService.Application.Services
         /// <returns>List of orders dto.</returns>
         private async Task<List<OrderDto>> ProcessOrdersListAsync(List<Order> orders)
         {
+            _logger.LogInformation("Starting to process Orders list.");
+
             var ordersListTasks = orders.Select(async order =>
             {
                 var (buyerDto, orderProductsDto) = await _orderExternalDataService.GetBuyerDtoAndOrderProductsDtoFromOrderAsync(order);
@@ -131,6 +167,7 @@ namespace OrderService.Application.Services
             });
 
             OrderDto[] ordersDto = await Task.WhenAll(ordersListTasks);
+            _logger.LogInformation("Successfully Orders list was processed.");
             return ordersDto.ToList();
         }
 
@@ -141,6 +178,8 @@ namespace OrderService.Application.Services
         /// <returns>Order object.</returns>
         private async Task<Order> CreateNewOrderAsync(OrderRequestDto orderRequestDto)
         {
+            _logger.LogInformation("Creating Order object to add.");
+
             Order order = _mapper.Map<Order>(orderRequestDto);
             var (orderId, buyerId, products) = await _orderExternalDataService.GetDataFromOrderRequestDtoAsync(orderRequestDto);
 
@@ -160,19 +199,23 @@ namespace OrderService.Application.Services
         /// <returns>Event added dto object.</returns>
         private async Task<EventAddedDto> ProcessNewEventAsync(int orderId, EventDto eventDto)
         {
+            _logger.LogInformation("Starting to process new Event.");
+
             Event newEvent = _mapper.Map<Event>(eventDto);
             bool wasEventAdded = await _orderRepository.AddEventAsync(orderId, newEvent);
 
             if (!wasEventAdded)
             {
-                //Logueo error
-                //genero objeto respuesta con mensaje
-                return null;
+                string errorMsg = $"Failed to add new Event to Order with id {orderId}.";
+                _logger.LogError(errorMsg);
+                throw new Exception(errorMsg);
             }
 
+            _logger.LogInformation("Updating Order status.");
             OrderStatus? previousStatus = await _orderRepository.GetOrderStatusAsync(orderId);
             await _orderRepository.UpdateOrderStatusAsync(orderId, newEvent.Type);
 
+            _logger.LogInformation("Successfully added new Event.");
             return _eventValidationService.CreateEventAddedDto(orderId, previousStatus.Value.ToString(), newEvent.Type.ToString());
         }
     }

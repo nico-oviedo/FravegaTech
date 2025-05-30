@@ -1,4 +1,5 @@
-﻿using OrderService.Application.Services.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using OrderService.Domain.Enums;
 using SharedKernel.Dtos.Requests;
@@ -8,25 +9,38 @@ namespace OrderService.Application.Services
     public class OrderValidationService : IOrderValidationService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly ILogger<OrderValidationService> _logger;
 
-        public OrderValidationService(IOrderRepository orderRepository)
+        public OrderValidationService(IOrderRepository orderRepository, ILogger<OrderValidationService> logger)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<bool> IsOrderValidAsync(OrderRequestDto orderRequestDto)
         {
-            Enum.TryParse<SourceChannel>(orderRequestDto.Channel, out var orderChannel);
-            Task<bool> isExternalRefUniqueTask = _orderRepository.IsUniqueExternalReferenceInChannelAsync(orderRequestDto.ExternalReferenceId, orderChannel);
-            Task<bool> isProperTotalTask = Task.Run(() => IsProperTotalValue(orderRequestDto));
+            try
+            {
+                _logger.LogInformation("Starting Order validation.");
 
-            await Task.WhenAll(isExternalRefUniqueTask, isProperTotalTask);
+                Enum.TryParse<SourceChannel>(orderRequestDto.Channel, out var orderChannel);
+                Task<bool> isExternalRefUniqueTask = _orderRepository.IsUniqueExternalReferenceInChannelAsync(orderRequestDto.ExternalReferenceId, orderChannel);
+                Task<bool> isProperTotalTask = Task.Run(() => IsProperTotalValue(orderRequestDto));
 
-            bool isExternalRefUnique = await isExternalRefUniqueTask;
-            bool isProperTotal = await isProperTotalTask;
+                await Task.WhenAll(isExternalRefUniqueTask, isProperTotalTask);
 
-            return isExternalRefUnique && isProperTotal;
+                bool isExternalRefUnique = await isExternalRefUniqueTask;
+                bool isProperTotal = await isProperTotalTask;
+
+                _logger.LogInformation("Finish Order validation.");
+                return isExternalRefUnique && isProperTotal;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to validate Order. {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <summary>
@@ -36,6 +50,8 @@ namespace OrderService.Application.Services
         /// <returns>True if it's proper order total value, False the opposite.</returns>
         private bool IsProperTotalValue(OrderRequestDto orderRequestDto)
         {
+            _logger.LogInformation("Validating Order total value.");
+
             decimal totalValueProducts = 0;
             foreach (var product in orderRequestDto.Products)
             {

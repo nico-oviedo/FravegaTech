@@ -28,7 +28,7 @@ namespace BuyerService.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to get Buyer by id from database. {ex.Message}");
+                _logger.LogError(ex, $"Failed to get Buyer by id {buyerId} from database. {ex.Message}");
                 throw new DataAccessException($"{GetType().Name}:{nameof(GetBuyerByIdAsync)}", ex);
             }
         }
@@ -43,7 +43,7 @@ namespace BuyerService.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to get BuyerId by document number from database. {ex.Message}");
+                _logger.LogError(ex, $"Failed to get BuyerId by document number {documentNumber} from database. {ex.Message}");
                 throw new DataAccessException($"{GetType().Name}:{nameof(GetBuyerIdByDocumentNumberAsync)}", ex);
             }
         }

@@ -1,4 +1,5 @@
-﻿using OrderService.Application.Services.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using OrderService.Application.Services.Interfaces;
 using OrderService.Data.Repositories;
 using OrderService.Domain;
 using OrderService.Domain.Enums;
@@ -11,10 +12,12 @@ namespace OrderService.Application.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly Dictionary<OrderStatus, OrderStatus[]> _validStatusTransitions;
+        private readonly ILogger<EventValidationService> _logger;
 
-        public EventValidationService(IOrderRepository orderRepository)
+        public EventValidationService(IOrderRepository orderRepository, ILogger<EventValidationService> logger)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _validStatusTransitions = SetValidStatusTransitions();
         }
 
@@ -47,12 +50,8 @@ namespace OrderService.Application.Services
         {
             try
             {
-                bool eventTypeParsed = Enum.TryParse<OrderStatus>(eventDto.Type, out var eventType);
-                if (!eventTypeParsed)
-                {
-                    //loguear error
-                    return (false, false);
-                }
+                _logger.LogInformation("Starting Event validation.");
+                var eventType = Enum.Parse<OrderStatus>(eventDto.Type);
 
                 Task<bool> isUniqueEventIdTask = _orderRepository.IsUniqueEventIdAsync(orderId, eventDto.Id);
                 Task<bool> isValidTransitionTask = GetOrderStatusAndValidateTransitionAsync(orderId, eventType);
@@ -64,11 +63,13 @@ namespace OrderService.Application.Services
                 bool isValidTransition = await isValidTransitionTask;
                 bool isEventAlreadyProcessed = await isEventAlreadyProcessedTask;
 
+                _logger.LogInformation("Finish Event validation.");
                 return (isUniqueEventId && isValidTransition, !isEventAlreadyProcessed);
             }
             catch (Exception ex)
             {
-                return (false, false);
+                _logger.LogError(ex, $"Failed to validate Event. {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -80,6 +81,7 @@ namespace OrderService.Application.Services
         /// <returns>True if it's a valid status transition, False if it's not.</returns>
         private async Task<bool> GetOrderStatusAndValidateTransitionAsync(int orderId, OrderStatus newStatus)
         {
+            _logger.LogInformation("Validating Event Transition.");
             OrderStatus? currentStatus = await _orderRepository.GetOrderStatusAsync(orderId);
             return IsValidTransition(currentStatus.Value, newStatus);
         }

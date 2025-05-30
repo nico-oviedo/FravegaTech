@@ -50,7 +50,7 @@ namespace ProductService.Application.Services
         {
             try
             {
-                _logger.LogInformation($"Trying to add Product: {productDto}.");
+                _logger.LogInformation("Trying to add Product.");
                 string? productId = await _productRepository.GetProductIdBySKUAsync(productDto.SKU);
 
                 if (productId is not null)

@@ -41,14 +41,14 @@ namespace OrderService.Data.Repositories
         /// </summary>
         /// <param name="orderId">Order id.</param>
         /// <returns>Order status.</returns>
-        Task<OrderStatus?> GetOrderStatusAsync(int orderId);
+        Task<OrderStatus> GetOrderStatusAsync(int orderId);
 
         /// <summary>
         /// Adds new order
         /// </summary>
         /// <param name="order">Order object.</param>
         /// <returns>Added order id.</returns>
-        Task<string?> AddOrderAsync(Order order);
+        Task<string> AddOrderAsync(Order order);
 
         /// <summary>
         /// Adds new event to an order

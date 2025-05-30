@@ -3,6 +3,7 @@ using OrderService.Application.Services.Interfaces;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
+using SharedKernel.Exceptions;
 
 namespace OrderService.API.Controllers
 {
@@ -11,10 +12,12 @@ namespace OrderService.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IOrderService orderService, ILogger<OrdersController> logger)
         {
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -25,12 +28,26 @@ namespace OrderService.API.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetAsync(int orderId)
         {
-            OrderTranslatedDto fullOrder = await _orderService.GetFullOrderAsync(orderId);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
+                OrderTranslatedDto fullOrder = await _orderService.GetFullOrderAsync(orderId);
 
-            if (fullOrder is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(GetAsync)}.");
                 return Ok(fullOrder);
-            else
-                return BadRequest();
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("Orden no fue encontrada.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al obtener los datos de la orden.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -46,12 +63,26 @@ namespace OrderService.API.Controllers
         public async Task<IActionResult> SearchAsync([FromQuery] int? orderId, [FromQuery] string? documentNumber, [FromQuery] string? status,
             [FromQuery] DateTime? createdOnFrom, [FromQuery] DateTime? createdOnTo)
         {
-            List<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(SearchAsync)}.");
+                List<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
 
-            if (orderDtos is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(SearchAsync)}.");
                 return Ok(orderDtos);
-            else
-                return BadRequest();
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("No fueron encontradas Ordenes con los filtros ingresados.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al buscar las ordenes.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -62,12 +93,26 @@ namespace OrderService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] OrderRequestDto orderRequestDto)
         {
-            OrderCreatedDto orderCreatedDto = await _orderService.AddOrderAsync(orderRequestDto);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(PostAsync)}.");
+                OrderCreatedDto orderCreatedDto = await _orderService.AddOrderAsync(orderRequestDto);
 
-            if (orderCreatedDto is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(PostAsync)}.");
                 return Ok(orderCreatedDto);
-            else
-                return BadRequest();
+            }
+            catch (BusinessValidationException)
+            {
+                return BadRequest("La orden es inválida y no ha sido ingresada en el sistema.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al ingresar una nueva orden en el sistema.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
 
         /// <summary>
@@ -79,12 +124,26 @@ namespace OrderService.API.Controllers
         [HttpPost("{orderId}/events")]
         public async Task<IActionResult> AddEventAsync(int orderId, [FromBody] EventDto eventDto)
         {
-            EventAddedDto eventAddedDto = await _orderService.AddEventToOrderAsync(orderId, eventDto);
+            try
+            {
+                _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(AddEventAsync)}.");
+                EventAddedDto eventAddedDto = await _orderService.AddEventToOrderAsync(orderId, eventDto);
 
-            if (eventAddedDto is not null)
+                _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(AddEventAsync)}.");
                 return Ok(eventAddedDto);
-            else
-                return BadRequest();
+            }
+            catch (BusinessValidationException)
+            {
+                return BadRequest("El evento es inválido y no ha sido ingresado en el sistema.");
+            }
+            catch (DataAccessException)
+            {
+                return StatusCode(500, "Ocurrió un error al ingresar un nuevo evento en el sistema.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Un error interno ha ocurrido.");
+            }
         }
     }
 }

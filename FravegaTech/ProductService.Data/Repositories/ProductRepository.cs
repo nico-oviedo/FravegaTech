@@ -28,7 +28,7 @@ namespace ProductService.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to get Product by id from database. {ex.Message}");
+                _logger.LogError(ex, $"Failed to get Product by id {productId} from database. {ex.Message}");
                 throw new DataAccessException($"{GetType().Name}:{nameof(GetProductByIdAsync)}", ex);
             }
         }
@@ -43,7 +43,7 @@ namespace ProductService.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to get ProductId by SKU from database. {ex.Message}");
+                _logger.LogError(ex, $"Failed to get ProductId by SKU {sku} from database. {ex.Message}");
                 throw new DataAccessException($"{GetType().Name}:{nameof(GetProductIdBySKUAsync)}", ex);
             }
         }

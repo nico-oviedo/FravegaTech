@@ -13,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CounterService\CounterService.csproj" />
     <ProjectReference Include="..\OrderService.Data\OrderService.Data.csproj" />
-    <ProjectReference Include="..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>

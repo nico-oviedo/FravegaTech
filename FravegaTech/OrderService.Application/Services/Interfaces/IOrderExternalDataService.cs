@@ -18,13 +18,13 @@ namespace OrderService.Application.Services.Interfaces
         /// </summary>
         /// <param name="order">Order object.</param>
         /// <returns>Tuple with buyer dto and list of order product dto.</returns>
-        Task<(BuyerDto?, List<OrderProductDto>)> GetBuyerDtoAndOrderProductsDtoFromOrderAsync(Order order);
+        Task<(BuyerDto, List<OrderProductDto>)> GetBuyerDtoAndOrderProductsDtoFromOrderAsync(Order order);
 
         /// <summary>
         /// Gets in parallel order id, buyer id and list of order products from order request dto
         /// </summary>
         /// <param name="orderRequestDto">Order request dto.</param>
         /// <returns>Tuple with order id, buyer id and list of order product.</returns>
-        Task<(int, string?, List<OrderProduct>)> GetDataFromOrderRequestDtoAsync(OrderRequestDto orderRequestDto);
+        Task<(int, string, List<OrderProduct>)> GetDataFromOrderRequestDtoAsync(OrderRequestDto orderRequestDto);
     }
 }

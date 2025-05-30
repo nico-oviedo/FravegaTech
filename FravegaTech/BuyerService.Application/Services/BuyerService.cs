@@ -57,7 +57,7 @@ namespace BuyerService.Application.Services
         {
             try
             {
-                _logger.LogInformation($"Trying to add Buyer: {buyerDto}.");
+                _logger.LogInformation("Trying to add Buyer.");
                 string? buyerId = await _buyerRepository.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber);
 
                 if (buyerId is not null)

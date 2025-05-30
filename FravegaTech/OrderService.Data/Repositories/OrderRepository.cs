@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using OrderService.Domain;
 using OrderService.Domain.Enums;
+using SharedKernel.Exceptions;
 
 namespace OrderService.Data.Repositories
 {
@@ -9,13 +11,15 @@ namespace OrderService.Data.Repositories
     {
         private readonly IMongoCollection<Order> _orders;
         private readonly TimeZoneInfo _timeZoneArg;
+        private readonly ILogger<OrderRepository> _logger;
 
-        public OrderRepository(IConfiguration config)
+        public OrderRepository(IConfiguration config, ILogger<OrderRepository> logger)
         {
             var client = new MongoClient(config.GetConnectionString("MongoDB"));
             var database = client.GetDatabase(config.GetConnectionString("OrderDatabase"));
             _orders = database.GetCollection<Order>(config.GetConnectionString("OrdersCollection"));
             _timeZoneArg = TimeZoneInfo.FindSystemTimeZoneById(config.GetSection("TimeZones")["TimeZoneARG"]!);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -27,8 +31,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to get Order by id {orderId} from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetByOrderIdAsync)}", ex);
             }
         }
 
@@ -45,7 +49,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, $"Failed to get Order external reference {externalReferenceId} in channel {channel.ToString()} from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(IsUniqueExternalReferenceInChannelAsync)}", ex);
             }
         }
 
@@ -62,7 +67,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, $"Failed to get Order with id {orderId} and EventId {eventId} from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(IsUniqueEventIdAsync)}", ex);
             }
         }
 
@@ -79,12 +85,13 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, $"Failed to get Order with id {orderId} and EventType {eventType.ToString()} from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(IsEventAlreadyProcessedAsync)}", ex);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<OrderStatus?> GetOrderStatusAsync(int orderId)
+        public async Task<OrderStatus> GetOrderStatusAsync(int orderId)
         {
             try
             {
@@ -93,16 +100,17 @@ namespace OrderService.Data.Repositories
                     .Project(o => new { o.Status })
                     .FirstOrDefaultAsync();
 
-                return result?.Status;
+                return result.Status;
             }
             catch (Exception ex)
             {
-                return null;
+                _logger.LogError(ex, $"Failed to get Order status by id {orderId} from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(GetOrderStatusAsync)}", ex);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<string?> AddOrderAsync(Order order)
+        public async Task<string> AddOrderAsync(Order order)
         {
             try
             {
@@ -115,8 +123,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                //Loguear exception
-                return null;
+                _logger.LogError(ex, $"Failed to insert new Order in database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(AddOrderAsync)}", ex);
             }
         }
 
@@ -137,7 +145,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, $"Failed to insert new Event for Order with id {orderId} in database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(AddEventAsync)}", ex);
             }
         }
 
@@ -154,7 +163,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, $"Failed to update OrderStatus for Order with id {orderId} in database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(UpdateOrderStatusAsync)}", ex);
             }
         }
 
@@ -174,7 +184,8 @@ namespace OrderService.Data.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception();
+                _logger.LogError(ex, $"Failed to search Orders with given filters from database. {ex.Message}");
+                throw new DataAccessException($"{GetType().Name}:{nameof(SearchOrdersAsync)}", ex);
             }
         }
 

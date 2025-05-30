@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using CounterService.Services;
+﻿using CounterService.Services;
+using Microsoft.Extensions.Logging;
 using OrderService.Application.Services.Interfaces;
 using OrderService.Domain;
 using SharedKernel.Dtos;
@@ -13,51 +13,74 @@ namespace OrderService.Application.Services
         private readonly ICounterService _counterService;
         private readonly BuyerServiceClient _buyerServiceClient;
         private readonly ProductServiceClient _productServiceClient;
-        private readonly IMapper _mapper;
+        private readonly ILogger<OrderExternalDataService> _logger;
 
         public OrderExternalDataService(ICounterService counterService, BuyerServiceClient buyerServiceClient,
-            ProductServiceClient productServiceClient, IMapper mapper)
+            ProductServiceClient productServiceClient, ILogger<OrderExternalDataService> logger)
         {
             _counterService = counterService ?? throw new ArgumentNullException(nameof(counterService));
             _buyerServiceClient = buyerServiceClient ?? throw new ArgumentNullException(nameof(buyerServiceClient));
             _productServiceClient = productServiceClient ?? throw new ArgumentNullException(nameof(productServiceClient));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<string?> GetBuyerIdByDocumentNumberAsync(string documentNumber)
         {
+            _logger.LogInformation($"Trying to get BuyerId with document number: {documentNumber}.");
             return await _buyerServiceClient.GetBuyerIdByDocumentNumberAsync(documentNumber);
         }
 
         /// <inheritdoc/>
-        public async Task<(BuyerDto?, List<OrderProductDto>)> GetBuyerDtoAndOrderProductsDtoFromOrderAsync(Order order)
+        public async Task<(BuyerDto, List<OrderProductDto>)> GetBuyerDtoAndOrderProductsDtoFromOrderAsync(Order order)
         {
-            Task<BuyerDto?> buyerDtoTask = _buyerServiceClient.GetBuyerByIdAsync(order.BuyerId);
-            Task<List<OrderProductDto>> orderProductsDtoTask = GetOrderProductsDtoListAsync(order.Products);
+            try
+            {
+                _logger.LogInformation($"Trying to get BuyerDto and OrderProductsDto from Order with id {order.OrderId}.");
 
-            await Task.WhenAll(buyerDtoTask, orderProductsDtoTask);
+                Task<BuyerDto?> buyerDtoTask = _buyerServiceClient.GetBuyerByIdAsync(order.BuyerId);
+                Task<List<OrderProductDto>> orderProductsDtoTask = GetOrderProductsDtoListAsync(order.Products);
 
-            BuyerDto? buyerDto = await buyerDtoTask;
-            List<OrderProductDto> orderProductsDto = await orderProductsDtoTask;
+                await Task.WhenAll(buyerDtoTask, orderProductsDtoTask);
 
-            return (buyerDto, orderProductsDto);
+                BuyerDto? buyerDto = await buyerDtoTask;
+                List<OrderProductDto> orderProductsDto = await orderProductsDtoTask;
+
+                _logger.LogInformation($"Successfully get BuyerDto and OrderProductsDto from Order with id {order.OrderId}.");
+                return (buyerDto!, orderProductsDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to get BuyerDto and OrderProductsDto from Order with id {order.OrderId}. {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<(int, string?, List<OrderProduct>)> GetDataFromOrderRequestDtoAsync(OrderRequestDto orderRequestDto)
+        public async Task<(int, string, List<OrderProduct>)> GetDataFromOrderRequestDtoAsync(OrderRequestDto orderRequestDto)
         {
-            Task<int> orderIdTask = _counterService.GetNextSequenceValueAsync(nameof(Order.OrderId));
-            Task<string?> buyerIdTask = _buyerServiceClient.AddBuyerAsync(orderRequestDto.Buyer);
-            Task<List<OrderProduct>> orderProductsTask = GetOrderProductsListAsync(orderRequestDto.Products);
+            try
+            {
+                _logger.LogInformation("Trying to get OrderId, BuyerId and OrderProducts list.");
 
-            await Task.WhenAll(orderIdTask, buyerIdTask, orderProductsTask);
+                Task<int> orderIdTask = _counterService.GetNextSequenceValueAsync(nameof(Order.OrderId));
+                Task<string?> buyerIdTask = _buyerServiceClient.AddBuyerAsync(orderRequestDto.Buyer);
+                Task<List<OrderProduct>> orderProductsTask = GetOrderProductsListAsync(orderRequestDto.Products);
 
-            int orderId = await orderIdTask;
-            string? buyerId = await buyerIdTask;
-            List<OrderProduct> products = await orderProductsTask;
+                await Task.WhenAll(orderIdTask, buyerIdTask, orderProductsTask);
 
-            return (orderId, buyerId, products);
+                int orderId = await orderIdTask;
+                string? buyerId = await buyerIdTask;
+                List<OrderProduct> products = await orderProductsTask;
+
+                _logger.LogInformation("Successfully get OrderId, BuyerId and OrderProducts list.");
+                return (orderId, buyerId!, products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to get OrderId, BuyerId and OrderProducts list. {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <summary>
@@ -67,12 +90,14 @@ namespace OrderService.Application.Services
         /// <returns>List of order products dto objects.</returns>
         private async Task<List<OrderProductDto>> GetOrderProductsDtoListAsync(List<OrderProduct> orderProducts)
         {
+            _logger.LogInformation("Trying to get OrderProductsDto list.");
+
             var productTasks = orderProducts.Select(async product =>
             {
                 ProductDto? productDto = await _productServiceClient.GetProductByIdAsync(product.ProductId);
                 return new OrderProductDto()
                 {
-                    SKU = productDto.SKU,
+                    SKU = productDto!.SKU,
                     Name = productDto.Name,
                     Description = productDto.Description,
                     Price = productDto.Price,
@@ -81,6 +106,7 @@ namespace OrderService.Application.Services
             });
 
             OrderProductDto[] orderProductsDto = await Task.WhenAll(productTasks);
+            _logger.LogInformation("Successfully get OrderProductsDto list.");
             return orderProductsDto.ToList();
         }
 
@@ -91,13 +117,16 @@ namespace OrderService.Application.Services
         /// <returns>List of order products objects.></returns>
         private async Task<List<OrderProduct>> GetOrderProductsListAsync(List<OrderProductDto> orderProductsDto)
         {
+            _logger.LogInformation("Trying to get OrderProducts list.");
+
             var productTasks = orderProductsDto.Select(async product =>
             {
                 string? productId = await _productServiceClient.AddProductAsync(product);
-                return new OrderProduct() { ProductId = productId, Quantity = product.Quantity };
+                return new OrderProduct() { ProductId = productId!, Quantity = product.Quantity };
             });
 
             OrderProduct[] orderProducts = await Task.WhenAll(productTasks);
+            _logger.LogInformation("Successfully get OrderProducts list.");
             return orderProducts.ToList();
         }
     }
