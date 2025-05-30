@@ -28,6 +28,9 @@ namespace BuyerService.API.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(buyerId))
+                    return BadRequest("Id del comprador es requerido.");
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
                 BuyerDto buyerDto = await _buyerService.GetBuyerByIdAsync(buyerId);
 
@@ -58,6 +61,9 @@ namespace BuyerService.API.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(documentNumber))
+                    return BadRequest("Número de documento del comprador es requerido.");
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetByDocumentNumberAsync)}.");
                 string? buyerId = await _buyerService.GetBuyerIdByDocumentNumberAsync(documentNumber);
 

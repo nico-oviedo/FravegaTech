@@ -125,10 +125,17 @@ namespace OrderService.Application.Services
             try
             {
                 _logger.LogInformation($"Trying to add new Event to Order with id {orderId}.");
-                var (isEventValid, isEventNotProcessed) = await _eventValidationService.IsEventValidAndNotProcessedAsync(orderId, eventDto);
 
+                Order order = await _orderRepository.GetByOrderIdAsync(orderId);
+                if (order is null)
+                {
+                    _logger.LogError($"Order with id {orderId} does not exist.");
+                    throw new NotFoundException(nameof(order), $"{GetType().Name}:{nameof(AddEventToOrderAsync)}");
+                }
+
+                var (isEventValid, isEventNotProcessed) = _eventValidationService.IsEventValidAndNotProcessedAsync(order, eventDto);
                 if (isEventValid && isEventNotProcessed)
-                    return await ProcessNewEventAsync(orderId, eventDto);
+                    return await ProcessNewEventAsync(orderId, eventDto, order.Status);
 
                 if (!isEventValid)
                 {
@@ -136,11 +143,11 @@ namespace OrderService.Application.Services
                     throw new BusinessValidationException("Event", $"{GetType().Name}:{nameof(AddEventToOrderAsync)}");
                 }
                 else
-                    return _eventValidationService.CreateEventAddedDto(orderId, eventDto.Type, eventDto.Type);
+                    return _eventValidationService.CreateEventAddedDto(orderId, order.Status.ToString(), eventDto.Type);
             }
-            catch (Exception ex)
+            catch (AutoMapperMappingException ex)
             {
-                _logger.LogError(ex, $"Failed to add new Event to Order with id {orderId}. {ex.Message}");
+                _logger.LogError(ex, $"Failed to map EventDto to Event. {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -196,8 +203,9 @@ namespace OrderService.Application.Services
         /// </summary>
         /// <param name="orderId">Order id.</param>
         /// <param name="eventDto">Event dto object.</param>
+        /// <param name="previousStatus">Order previous status.</param>
         /// <returns>Event added dto object.</returns>
-        private async Task<EventAddedDto> ProcessNewEventAsync(int orderId, EventDto eventDto)
+        private async Task<EventAddedDto> ProcessNewEventAsync(int orderId, EventDto eventDto, OrderStatus previousStatus)
         {
             _logger.LogInformation("Starting to process new Event.");
 
@@ -212,11 +220,10 @@ namespace OrderService.Application.Services
             }
 
             _logger.LogInformation("Updating Order status.");
-            OrderStatus? previousStatus = await _orderRepository.GetOrderStatusAsync(orderId);
             await _orderRepository.UpdateOrderStatusAsync(orderId, newEvent.Type);
 
             _logger.LogInformation("Successfully added new Event.");
-            return _eventValidationService.CreateEventAddedDto(orderId, previousStatus.Value.ToString(), newEvent.Type.ToString());
+            return _eventValidationService.CreateEventAddedDto(orderId, previousStatus.ToString(), newEvent.Type.ToString());
         }
     }
 }

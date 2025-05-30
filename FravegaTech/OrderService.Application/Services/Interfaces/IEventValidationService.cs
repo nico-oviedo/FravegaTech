@@ -24,9 +24,9 @@ namespace OrderService.Application.Services.Interfaces
         /// <summary>
         /// Checks if the event is valid and not processed
         /// </summary>
-        /// <param name="orderId">Order id.</param>
+        /// <param name="order">Order object.</param>
         /// <param name="eventDto">Event dto object.</param>
         /// <returns>A tuple with: Event validation result; and if it's was not processed.</returns>
-        Task<(bool, bool)> IsEventValidAndNotProcessedAsync(int orderId, EventDto eventDto);
+        (bool, bool) IsEventValidAndNotProcessedAsync(Order order, EventDto eventDto);
     }
 }

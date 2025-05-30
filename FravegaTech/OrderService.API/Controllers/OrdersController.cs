@@ -30,6 +30,9 @@ namespace OrderService.API.Controllers
         {
             try
             {
+                if (orderId <= 0)
+                    return BadRequest("Id de la orden es requerido.");
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
                 OrderTranslatedDto fullOrder = await _orderService.GetFullOrderAsync(orderId);
 
@@ -126,11 +129,18 @@ namespace OrderService.API.Controllers
         {
             try
             {
+                if (orderId <= 0)
+                    return BadRequest("Id de la orden es requerido.");
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(AddEventAsync)}.");
                 EventAddedDto eventAddedDto = await _orderService.AddEventToOrderAsync(orderId, eventDto);
 
                 _logger.LogInformation($"END endpoint call {GetType().Name}.{nameof(AddEventAsync)}.");
                 return Ok(eventAddedDto);
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("La orden no existe en el sistema.");
             }
             catch (BusinessValidationException)
             {

@@ -21,29 +21,6 @@ namespace OrderService.Data.Repositories
         Task<bool> IsUniqueExternalReferenceInChannelAsync(string externalReferenceId, SourceChannel channel);
 
         /// <summary>
-        /// Validates if it's unique event id in order
-        /// </summary>
-        /// <param name="orderId"><Order id./param>
-        /// <param name="eventId">Event id.</param>
-        /// <returns>True if event id does not exist in order, False the opposite.</returns>
-        Task<bool> IsUniqueEventIdAsync(int orderId, string eventId);
-
-        /// <summary>
-        /// Validates if the event was already processed
-        /// </summary>
-        /// <param name="orderId">Order id.</param>
-        /// <param name="eventType">Event type.</param>
-        /// <returns>True if event was already processed, False the opposite.</returns>
-        Task<bool> IsEventAlreadyProcessedAsync(int orderId, OrderStatus eventType);
-
-        /// <summary>
-        /// Gets order status
-        /// </summary>
-        /// <param name="orderId">Order id.</param>
-        /// <returns>Order status.</returns>
-        Task<OrderStatus> GetOrderStatusAsync(int orderId);
-
-        /// <summary>
         /// Adds new order
         /// </summary>
         /// <param name="order">Order object.</param>

@@ -55,61 +55,6 @@ namespace OrderService.Data.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsUniqueEventIdAsync(int orderId, string eventId)
-        {
-            try
-            {
-                bool existEventId = await _orders
-                    .Find(o => o.OrderId == orderId && o.Events.Any(e => e.EventId.ToLower() == eventId.ToLower()))
-                    .AnyAsync();
-
-                return !existEventId;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to get Order with id {orderId} and EventId {eventId} from database. {ex.Message}");
-                throw new DataAccessException($"{GetType().Name}:{nameof(IsUniqueEventIdAsync)}", ex);
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> IsEventAlreadyProcessedAsync(int orderId, OrderStatus eventType)
-        {
-            try
-            {
-                bool eventProcessed = await _orders
-                    .Find(o => o.OrderId == orderId && o.Events.Any(e => e.Type == eventType))
-                    .AnyAsync();
-
-                return eventProcessed;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to get Order with id {orderId} and EventType {eventType.ToString()} from database. {ex.Message}");
-                throw new DataAccessException($"{GetType().Name}:{nameof(IsEventAlreadyProcessedAsync)}", ex);
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<OrderStatus> GetOrderStatusAsync(int orderId)
-        {
-            try
-            {
-                var result = await _orders
-                    .Find(o => o.OrderId == orderId)
-                    .Project(o => new { o.Status })
-                    .FirstOrDefaultAsync();
-
-                return result.Status;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to get Order status by id {orderId} from database. {ex.Message}");
-                throw new DataAccessException($"{GetType().Name}:{nameof(GetOrderStatusAsync)}", ex);
-            }
-        }
-
-        /// <inheritdoc/>
         public async Task<string> AddOrderAsync(Order order)
         {
             try

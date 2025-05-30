@@ -28,6 +28,9 @@ namespace ProductService.API.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(productId))
+                    return BadRequest("Id del producto es requerido.");
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(GetAsync)}.");
                 ProductDto productDto = await _productService.GetProductByIdAsync(productId);
 

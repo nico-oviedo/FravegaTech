@@ -46,22 +46,16 @@ namespace OrderService.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task<(bool, bool)> IsEventValidAndNotProcessedAsync(int orderId, EventDto eventDto)
+        public (bool, bool) IsEventValidAndNotProcessedAsync(Order order, EventDto eventDto)
         {
             try
             {
                 _logger.LogInformation("Starting Event validation.");
                 var eventType = Enum.Parse<OrderStatus>(eventDto.Type);
 
-                Task<bool> isUniqueEventIdTask = _orderRepository.IsUniqueEventIdAsync(orderId, eventDto.Id);
-                Task<bool> isValidTransitionTask = GetOrderStatusAndValidateTransitionAsync(orderId, eventType);
-                Task<bool> isEventAlreadyProcessedTask = _orderRepository.IsEventAlreadyProcessedAsync(orderId, eventType);
-
-                await Task.WhenAll(isUniqueEventIdTask, isValidTransitionTask, isEventAlreadyProcessedTask);
-
-                bool isUniqueEventId = await isUniqueEventIdTask;
-                bool isValidTransition = await isValidTransitionTask;
-                bool isEventAlreadyProcessed = await isEventAlreadyProcessedTask;
+                bool isUniqueEventId = !order.Events.Any(e => e.EventId.ToLower() == eventDto.Id.ToLower());
+                bool isValidTransition = IsValidTransition(order.Status, eventType);
+                bool isEventAlreadyProcessed = order.Events.Any(e => e.Type == eventType);
 
                 _logger.LogInformation("Finish Event validation.");
                 return (isUniqueEventId && isValidTransition, !isEventAlreadyProcessed);
@@ -71,19 +65,6 @@ namespace OrderService.Application.Services
                 _logger.LogError(ex, $"Failed to validate Event. {ex.Message}");
                 throw new Exception(ex.Message);
             }
-        }
-
-        /// <summary>
-        /// Gets order status and validates transition
-        /// </summary>
-        /// <param name="orderId">Order id.</param>
-        /// <param name="newStatus">New status.</param>
-        /// <returns>True if it's a valid status transition, False if it's not.</returns>
-        private async Task<bool> GetOrderStatusAndValidateTransitionAsync(int orderId, OrderStatus newStatus)
-        {
-            _logger.LogInformation("Validating Event Transition.");
-            OrderStatus? currentStatus = await _orderRepository.GetOrderStatusAsync(orderId);
-            return IsValidTransition(currentStatus.Value, newStatus);
         }
 
         /// <summary>
