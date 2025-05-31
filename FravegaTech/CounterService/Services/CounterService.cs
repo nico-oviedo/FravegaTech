@@ -1,4 +1,5 @@
 ﻿using CounterService.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SharedKernel.Exceptions;
@@ -10,11 +11,11 @@ namespace CounterService.Services
         private readonly IMongoCollection<Counter> _counters;
         private readonly ILogger<CounterService> _logger;
 
-        public CounterService(ILogger<CounterService> logger)
+        public CounterService(IConfiguration config, ILogger<CounterService> logger)
         {
-            var client = new MongoClient("mongodb://localhost:27017"); //Obtener por archivo de configuracion
-            var database = client.GetDatabase("counterDb");
-            _counters = database.GetCollection<Counter>("counters");
+            var client = new MongoClient(config.GetConnectionString("MongoDB"));
+            var database = client.GetDatabase(config.GetConnectionString("CounterDatabase"));
+            _counters = database.GetCollection<Counter>(config.GetConnectionString("CountersCollection"));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
