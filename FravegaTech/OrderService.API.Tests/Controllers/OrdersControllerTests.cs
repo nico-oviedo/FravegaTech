@@ -110,10 +110,10 @@ namespace OrderService.API.Tests.Controllers
             var status = "Cancelled";
             var now = DateTime.Now;
 
-            _mockOrderService.Setup(s => s.SearchOrdersAsync(null, null, status, now, now.AddDays(5)))
+            _mockOrderService.Setup(s => s.SearchOrdersAsync(null, null, status, now.AddDays(-7), now))
                 .ThrowsAsync(new Exception());
 
-            var result = await _ordersController.SearchAsync(null, null, status, now, now.AddDays(5));
+            var result = await _ordersController.SearchAsync(null, null, status, now.AddDays(-7), now);
             var serverError = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverError.StatusCode);
             Assert.Equal("Un error interno ha ocurrido.", serverError.Value);

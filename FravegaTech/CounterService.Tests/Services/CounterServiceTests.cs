@@ -5,7 +5,7 @@ using MongoDB.Driver;
 using Moq;
 using CounterServ = CounterService.Services;
 
-namespace CounterServiceTests.Services
+namespace CounterService.Tests.Services
 {
     public class CounterServiceTests
     {
