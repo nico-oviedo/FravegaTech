@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService.Data.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CounterService.Tests", "CounterService.Tests\CounterService.Tests.csproj", "{A01E3E51-CC49-4F35-8B77-9BD20C3448D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService.Application.Tests", "OrderService.Application.Tests\OrderService.Application.Tests.csproj", "{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +161,10 @@ Global
 		{A01E3E51-CC49-4F35-8B77-9BD20C3448D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A01E3E51-CC49-4F35-8B77-9BD20C3448D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A01E3E51-CC49-4F35-8B77-9BD20C3448D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,5 +193,6 @@ Global
 		{9C85B99C-A5BE-4EEB-B18D-D18022437188} = {CD409D36-B709-4DEB-80AB-C25F7DD38B1A}
 		{925B8D03-86F5-4F45-814C-8A3285380BDB} = {CD409D36-B709-4DEB-80AB-C25F7DD38B1A}
 		{A01E3E51-CC49-4F35-8B77-9BD20C3448D7} = {CD409D36-B709-4DEB-80AB-C25F7DD38B1A}
+		{CBDFB772-F780-4F3D-8C6E-ACBFE1E0EAEC} = {CD409D36-B709-4DEB-80AB-C25F7DD38B1A}
 	EndGlobalSection
 EndGlobal
