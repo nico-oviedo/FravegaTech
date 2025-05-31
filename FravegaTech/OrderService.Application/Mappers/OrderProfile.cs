@@ -18,7 +18,7 @@ namespace OrderService.Application.Mappers
                 .ForMember(dest => dest.Products, opt => opt.Ignore());
 
             CreateMap<OrderRequestDto, Order>()
-                .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => Enum.Parse<SourceChannel>(src.Channel)))
+                .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => Enum.Parse<SourceChannel>(src.Channel, true)))
                 .ForMember(dest => dest.Products, opt => opt.Ignore());
 
             CreateMap<Order, OrderCreatedDto>()

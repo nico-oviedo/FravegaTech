@@ -24,7 +24,7 @@ namespace OrderService.Application.Services
             {
                 _logger.LogInformation("Starting Order validation.");
 
-                Enum.TryParse<SourceChannel>(orderRequestDto.Channel, out var orderChannel);
+                Enum.TryParse<SourceChannel>(orderRequestDto.Channel, true, out var orderChannel);
                 Task<bool> isExternalRefUniqueTask = _orderRepository.IsUniqueExternalReferenceInChannelAsync(orderRequestDto.ExternalReferenceId, orderChannel);
                 Task<bool> isProperTotalTask = Task.Run(() => IsProperTotalValue(orderRequestDto));
 

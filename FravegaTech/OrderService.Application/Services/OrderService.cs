@@ -73,7 +73,7 @@ namespace OrderService.Application.Services
                     : null;
 
                 OrderStatus? orderStatus = status is not null
-                    && Enum.TryParse<OrderStatus>(status, out var statusOut)
+                    && Enum.TryParse<OrderStatus>(status, true, out var statusOut)
                     ? statusOut : null;
 
                 var orders = await _orderRepository.SearchOrdersAsync(orderId, buyerId, orderStatus, createdOnFrom, createdOnTo);

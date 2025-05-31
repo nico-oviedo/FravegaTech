@@ -15,7 +15,7 @@ namespace OrderService.Application.Mappers
 
             CreateMap<EventDto, Event>()
                 .ForMember(dest => dest.EventId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => Enum.Parse<OrderStatus>(src.Type)));
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => Enum.Parse<OrderStatus>(src.Type, true)));
         }
     }
 }

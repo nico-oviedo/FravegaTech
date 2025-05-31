@@ -51,7 +51,7 @@ namespace OrderService.Application.Services
             try
             {
                 _logger.LogInformation("Starting Event validation.");
-                var eventType = Enum.Parse<OrderStatus>(eventDto.Type);
+                var eventType = Enum.Parse<OrderStatus>(eventDto.Type, true);
 
                 bool isUniqueEventId = !order.Events.Any(e => e.EventId.ToLower() == eventDto.Id.ToLower());
                 bool isValidTransition = IsValidTransition(order.Status, eventType);

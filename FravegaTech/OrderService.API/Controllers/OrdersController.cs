@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrderService.Application.Services.Interfaces;
+using OrderService.Domain.Enums;
 using SharedKernel.Dtos;
 using SharedKernel.Dtos.Requests;
 using SharedKernel.Dtos.Responses;
@@ -68,6 +69,10 @@ namespace OrderService.API.Controllers
         {
             try
             {
+                var (areFiltersValid, errorMsg) = SearchFiltersValidation(orderId, status, createdOnFrom, createdOnTo);
+                if (!areFiltersValid)
+                    return BadRequest(errorMsg);
+
                 _logger.LogInformation($"START endpoint call {GetType().Name}:{nameof(SearchAsync)}.");
                 List<OrderDto> orderDtos = await _orderService.SearchOrdersAsync(orderId, documentNumber, status, createdOnFrom, createdOnTo);
 
@@ -154,6 +159,34 @@ namespace OrderService.API.Controllers
             {
                 return StatusCode(500, "Un error interno ha ocurrido.");
             }
+        }
+
+        /// <summary>
+        /// Validates search filter values
+        /// </summary>
+        /// <param name="orderId">Order id.</param>
+        /// <param name="status">Order status.</param>
+        /// <param name="createdOnFrom">Order created from.</param>
+        /// <param name="createdOnTo">Order created to.</param>
+        /// <returns>True if search filter values are valid, False if they are not and the error message.</returns>
+        private (bool, string) SearchFiltersValidation(int? orderId, string? status, DateTime? createdOnFrom, DateTime? createdOnTo)
+        {
+            if (orderId.HasValue && orderId.Value <= 0)
+                return (false, "Id de la orden ingresado debe ser mayor a 0.");
+
+            if (!string.IsNullOrWhiteSpace(status) && !Enum.TryParse<OrderStatus>(status, true, out var result))
+                return (false, "Estado de la orden ingresado es inválido.");
+
+            if (createdOnFrom.HasValue && createdOnFrom.Value > DateTime.Now)
+                return (false, "Fecha desde ingresada no debe ser mayor que ahora.");
+
+            if (createdOnTo.HasValue && createdOnTo.Value > DateTime.Now)
+                return (false, "Fecha hasta ingresada no debe ser mayor que ahora.");
+
+            if (createdOnFrom.HasValue && createdOnTo.HasValue && createdOnFrom > createdOnTo)
+                return (false, "Fecha desde ingresada no debe ser mayor que fecha hasta.");
+
+            return (true, string.Empty);
         }
     }
 }

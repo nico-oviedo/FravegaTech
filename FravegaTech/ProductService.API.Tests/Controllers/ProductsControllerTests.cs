@@ -87,7 +87,7 @@ namespace ProductService.API.Tests.Controllers
         public async Task PostAsync_Returns500_WhenServiceThrows()
         {
             var productDto = new ProductDto { SKU = "P134", Name = "Heladera", Price = 10500 };
-            _mockProductService.Setup(s => s.AddProductAsync(productDto)).ThrowsAsync(new DataAccessException("productService", new Exception()));
+            _mockProductService.Setup(s => s.AddProductAsync(productDto)).ThrowsAsync(new DataAccessException("ProductService", new Exception()));
 
             var result = await _productsController.PostAsync(productDto);
             var serverError = Assert.IsType<ObjectResult>(result);
