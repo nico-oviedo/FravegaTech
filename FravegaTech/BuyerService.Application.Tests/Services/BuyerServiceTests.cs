@@ -63,10 +63,10 @@ namespace BuyerService.Application.Tests.Services
         [Fact]
         public async Task AddBuyerAsync_ReturnsExistingBuyerId_WhenAlreadyExists()
         {
-            var dto = new BuyerDto { FirstName = "Silvia", LastName = "Perez", DocumentNumber = "41.223.457" };
-            _mockBuyerRepository.Setup(r => r.GetBuyerIdByDocumentNumberAsync(dto.DocumentNumber)).ReturnsAsync("KJG456");
+            var buyerDto = new BuyerDto { FirstName = "Silvia", LastName = "Perez", DocumentNumber = "41.223.457" };
+            _mockBuyerRepository.Setup(r => r.GetBuyerIdByDocumentNumberAsync(buyerDto.DocumentNumber)).ReturnsAsync("KJG456");
 
-            var result = await _buyerService.AddBuyerAsync(dto);
+            var result = await _buyerService.AddBuyerAsync(buyerDto);
 
             Assert.Equal("KJG456", result);
             _mockBuyerRepository.Verify(r => r.AddBuyerAsync(It.IsAny<Buyer>()), Times.Never);
