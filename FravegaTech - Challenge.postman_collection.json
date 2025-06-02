@@ -1,0 +1,385 @@
+{
+	"info": {
+		"_postman_id": "bf59130d-9517-40cd-9987-b38906c536e3",
+		"name": "FravegaTech - Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45142442",
+		"_collection_link": "https://nicolasoviedo-1154182.postman.co/workspace/Nicolas-Oviedo's-Workspace~1d24463d-ab44-42cd-873f-42329986da2e/collection/45142442-bf59130d-9517-40cd-9987-b38906c536e3?action=share&source=collection_link&creator=45142442"
+	},
+	"item": [
+		{
+			"name": "Buyer Service",
+			"item": [
+				{
+					"name": "Get Buyer",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseBuyerURL}}/api/v1/Buyers/{{buyerId}}",
+							"host": [
+								"{{baseBuyerURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Buyers",
+								"{{buyerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get BuyerId by DocumentNumber",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseBuyerURL}}/api/v1/Buyers/documentnumber/{{documentNumber}}",
+							"host": [
+								"{{baseBuyerURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Buyers",
+								"documentnumber",
+								"{{documentNumber}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Buyer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"firstName\": \"Nicolas\",\r\n  \"lastName\": \"Perez\",\r\n  \"documentNumber\": \"35.332.487\",\r\n  \"phone\": \"1166982475\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseBuyerURL}}/api/v1/Buyers",
+							"host": [
+								"{{baseBuyerURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Buyers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Product Service",
+			"item": [
+				{
+					"name": "Get Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseProductURL}}/api/v1/Products/{{productId}}",
+							"host": [
+								"{{baseProductURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Products",
+								"{{productId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"sku\": \"P128\",\r\n  \"name\": \"Televisor LED LG 50\",\r\n  \"description\": \"Televisor Full HD 4K\",\r\n  \"price\": 50000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseProductURL}}/api/v1/Products",
+							"host": [
+								"{{baseProductURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Order Service",
+			"item": [
+				{
+					"name": "Get Order",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseOrderURL}}/api/v1/Orders/{{orderId}}",
+							"host": [
+								"{{baseOrderURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Orders",
+								"{{orderId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Orders",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseOrderURL}}/api/v1/Orders/search?orderId={{orderId}}&documentNumber={{documentNumber}}&status={{status}}&createdOnFrom={{createdOnFrom}}&createdOnTo={{createdOnTo}}",
+							"host": [
+								"{{baseOrderURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Orders",
+								"search"
+							],
+							"query": [
+								{
+									"key": "orderId",
+									"value": "{{orderId}}"
+								},
+								{
+									"key": "documentNumber",
+									"value": "{{documentNumber}}"
+								},
+								{
+									"key": "status",
+									"value": "{{status}}"
+								},
+								{
+									"key": "createdOnFrom",
+									"value": "{{createdOnFrom}}"
+								},
+								{
+									"key": "createdOnTo",
+									"value": "{{createdOnTo}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"externalReferenceId\": \"abc-123\",\r\n    \"channel\": \"Ecommerce\",\r\n    \"purchaseDate\": \"2025-05-27T18:38:12.796Z\",\r\n    \"totalValue\": 53000,\r\n    \"buyer\": {\r\n        \"firstName\": \"Fabian\",\r\n        \"lastName\": \"Oviedo\",\r\n        \"documentNumber\": \"33.402.297\",\r\n        \"phone\": \"5491158482945\"\r\n    },\r\n    \"products\": [\r\n        {\r\n            \"sku\": \"P128\",\r\n            \"name\": \"Televisor LED LG 50\",\r\n            \"description\": \"Televisor Full HD 4K\",\r\n            \"price\": 50000,\r\n            \"quantity\": 1\r\n        },\r\n        {\r\n            \"sku\": \"P234\",\r\n            \"name\": \"Tostadora ATMA\",\r\n            \"description\": \"Hermosa tostadora de color blanco\",\r\n            \"price\": 1500,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseOrderURL}}/api/v1/Orders",
+							"host": [
+								"{{baseOrderURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"event-002\",\r\n  \"type\": \"PaymentReceived\",\r\n  \"date\": \"2025-05-28T18:56:12.072Z\",\r\n  \"user\": \"Nicolas\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseOrderURL}}/api/v1/Orders/{{orderId}}/events",
+							"host": [
+								"{{baseOrderURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"Orders",
+								"{{orderId}}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseBuyerURL",
+			"value": "https://localhost:7185",
+			"type": "string"
+		},
+		{
+			"key": "baseProductURL",
+			"value": "https://localhost:7172",
+			"type": "string"
+		},
+		{
+			"key": "baseOrderURL",
+			"value": "https://localhost:7183",
+			"type": "default"
+		},
+		{
+			"key": "orderId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "documentNumber",
+			"value": "35.332.487",
+			"type": "default"
+		},
+		{
+			"key": "status",
+			"value": "Created",
+			"type": "default"
+		},
+		{
+			"key": "createdOnFrom",
+			"value": "2025-05-27T18:38:00",
+			"type": "default"
+		},
+		{
+			"key": "createdOnTo",
+			"value": "2025-05-27T18:38:00",
+			"type": "default"
+		},
+		{
+			"key": "buyerId",
+			"value": "682fc8bf4a61013b3a91aa51",
+			"type": "default"
+		},
+		{
+			"key": "productId",
+			"value": "6834b5fbde1be2df70a7acaf",
+			"type": "default"
+		}
+	]
+}
