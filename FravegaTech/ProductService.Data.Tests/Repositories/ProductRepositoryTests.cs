@@ -103,6 +103,27 @@ namespace ProductService.Data.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetProductIdByDocumentNumberAsync_ThrowsDataAccessException_OnError()
+        {
+            var product = new Product { _id = "FRE123", SKU = "P134", Name = "Playstation 5", Price = 108000 };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Product>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns(new List<Product> { product });
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>()))
+                .Returns(true)
+                .Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
+            _mockProductsCollection.Setup(c =>
+                    c.FindAsync(It.IsAny<FilterDefinition<Product>>(), It.IsAny<FindOptions<Product, Product>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+
+            await Assert.ThrowsAsync<DataAccessException>(() => _productRepository.GetProductIdBySKUAsync("P134"));
+        }
+
+        [Fact]
         public async Task AddProductAsync_ReturnsId_WhenSuccessful()
         {
             var product = new Product { _id = "FRE123", SKU = "P134", Name = "Playstation 5", Price = 108000 };

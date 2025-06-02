@@ -25,6 +25,14 @@ namespace ProductService.Application.Tests.Services
         }
 
         [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new ProductApplication.ProductService(null!, _mockMapper.Object, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new ProductApplication.ProductService(_mockProductRepository.Object, null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new ProductApplication.ProductService(_mockProductRepository.Object, _mockMapper.Object, null!));
+        }
+
+        [Fact]
         public async Task GetProductByIdAsync_ReturnsProductDto_WhenProductExists()
         {
             var productId = "ABC123";

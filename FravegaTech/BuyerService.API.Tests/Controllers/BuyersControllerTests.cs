@@ -21,6 +21,13 @@ namespace BuyerService.API.Tests.Controllers
             _buyersController = new BuyersController(_mockBuyerService.Object, _mockLogger.Object);
         }
 
+        [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new BuyersController(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new BuyersController(_mockBuyerService.Object, null!));
+        }
+
         #region GetAsync
 
         [Fact]
@@ -57,6 +64,18 @@ namespace BuyerService.API.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAsync_ReturnsInternalServerError_WhenDataAccessException()
+        {
+            _mockBuyerService.Setup(s => s.GetBuyerByIdAsync(It.IsAny<string>()))
+                .ThrowsAsync(new DataAccessException("BuyerService", new Exception()));
+
+            var result = await _buyersController.GetAsync("123");
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Ocurrió un error al obtener los datos del comprador.", serverError.Value);
+        }
+
+        [Fact]
         public async Task GetAsync_ReturnsInternalServerError_WhenUnhandledException()
         {
             _mockBuyerService.Setup(s => s.GetBuyerByIdAsync(It.IsAny<string>()))
@@ -85,7 +104,7 @@ namespace BuyerService.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetByDocumentNumberAsync_ReturnsBadRequest_WhenDocIsEmpty()
+        public async Task GetByDocumentNumberAsync_ReturnsBadRequest_WhenDocumentNumberIsEmpty()
         {
             var result = await _buyersController.GetByDocumentNumberAsync("");
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
@@ -104,6 +123,18 @@ namespace BuyerService.API.Tests.Controllers
             Assert.Equal("Ocurrió un error al obtener el id del comprador.", serverError.Value);
         }
 
+        [Fact]
+        public async Task GetByDocumentNumberAsync_Returns500_WhenUnhandledException()
+        {
+            _mockBuyerService.Setup(s => s.GetBuyerIdByDocumentNumberAsync(It.IsAny<string>()))
+                .ThrowsAsync(new Exception());
+
+            var result = await _buyersController.GetByDocumentNumberAsync("28.334.221");
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Un error interno ha ocurrido.", serverError.Value);
+        }
+
         #endregion
 
         #region PostAsync
@@ -120,7 +151,7 @@ namespace BuyerService.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task PostAsync_Returns500_WhenServiceThrows()
+        public async Task PostAsync_ReturnsInternalServerError_WhenDataAccessException()
         {
             var buyerDto = new BuyerDto { FirstName = "Pedro", LastName = "Rodriguez", DocumentNumber = "28.334.221" };
             _mockBuyerService.Setup(s => s.AddBuyerAsync(buyerDto)).ThrowsAsync(new DataAccessException("BuyerService", new Exception()));
@@ -129,6 +160,18 @@ namespace BuyerService.API.Tests.Controllers
             var serverError = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverError.StatusCode);
             Assert.Equal("Ocurrió un error al ingresar un nuevo comprador en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task PostAsync_ReturnsInternalServerError_WhenUnhandledException()
+        {
+            var buyerDto = new BuyerDto { FirstName = "Pedro", LastName = "Rodriguez", DocumentNumber = "28.334.221" };
+            _mockBuyerService.Setup(s => s.AddBuyerAsync(buyerDto)).ThrowsAsync(new Exception());
+
+            var result = await _buyersController.PostAsync(buyerDto);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Un error interno ha ocurrido.", serverError.Value);
         }
 
         #endregion

@@ -21,6 +21,13 @@ namespace ProductService.API.Tests.Controllers
             _productsController = new ProductsController(_mockProductService.Object, _mockLogger.Object);
         }
 
+        [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new ProductsController(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new ProductsController(_mockProductService.Object, null!));
+        }
+
         #region GetAsync
 
         [Fact]
@@ -57,6 +64,18 @@ namespace ProductService.API.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAsync_ReturnsInternalServerError_WhenDataAccessException()
+        {
+            _mockProductService.Setup(s => s.GetProductByIdAsync(It.IsAny<string>()))
+                .ThrowsAsync(new DataAccessException("ProductService", new Exception()));
+
+            var result = await _productsController.GetAsync("BB345");
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Ocurrió un error al obtener los datos del producto.", serverError.Value);
+        }
+
+        [Fact]
         public async Task GetAsync_ReturnsInternalServerError_WhenUnhandledException()
         {
             _mockProductService.Setup(s => s.GetProductByIdAsync(It.IsAny<string>()))
@@ -84,7 +103,7 @@ namespace ProductService.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task PostAsync_Returns500_WhenServiceThrows()
+        public async Task PostAsync_ReturnsInternalServerError_WhenDataAccessException()
         {
             var productDto = new ProductDto { SKU = "P134", Name = "Heladera", Price = 10500 };
             _mockProductService.Setup(s => s.AddProductAsync(productDto)).ThrowsAsync(new DataAccessException("ProductService", new Exception()));
@@ -93,6 +112,18 @@ namespace ProductService.API.Tests.Controllers
             var serverError = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverError.StatusCode);
             Assert.Equal("Ocurrió un error al ingresar un nuevo producto en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task PostAsync_ReturnsInternalServerError_WhenUnhandledException()
+        {
+            var productDto = new ProductDto { SKU = "P134", Name = "Heladera", Price = 10500 };
+            _mockProductService.Setup(s => s.AddProductAsync(productDto)).ThrowsAsync(new Exception());
+
+            var result = await _productsController.PostAsync(productDto);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Un error interno ha ocurrido.", serverError.Value);
         }
 
         #endregion

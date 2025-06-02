@@ -22,6 +22,13 @@ namespace OrderService.Application.Tests.Services
         }
 
         [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new EventValidationService(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new EventValidationService(_mockOrderRepository.Object, null!));
+        }
+
+        [Fact]
         public void CreateNewOrderEvent_ShouldReturnCreatedEvent()
         {
             var result = _eventValidationService.CreateNewOrderEvent();

@@ -25,6 +25,14 @@ namespace BuyerService.Application.Tests.Services
         }
 
         [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new BuyerApplication.BuyerService(null!, _mockMapper.Object, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new BuyerApplication.BuyerService(_mockBuyerRepository.Object, null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new BuyerApplication.BuyerService(_mockBuyerRepository.Object, _mockMapper.Object, null!));
+        }
+
+        [Fact]
         public async Task GetBuyerByIdAsync_ReturnsBuyerDto_WhenBuyerExists()
         {
             var buyerId = "ABC123";

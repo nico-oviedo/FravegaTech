@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Moq;
+using SharedKernel.Exceptions;
 using CounterServ = CounterService.Services;
 
 namespace CounterService.Tests.Services
@@ -52,6 +53,25 @@ namespace CounterService.Tests.Services
             var result = await _counterService.GetNextSequenceValueAsync(sequenceName);
 
             Assert.Equal(expectedValue, result);
+        }
+
+        [Fact]
+        public async Task GetNextSequenceValueAsync_ReturnsDataAccessException()
+        {
+            var sequenceName = "test";
+            var expectedValue = 42;
+            var counter = new Counter { SequenceName = sequenceName, SequenceValue = expectedValue };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Counter>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns([counter]);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>())).Returns(true).Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true).ReturnsAsync(false);
+
+            _mockCounterCollection.Setup(c => c.FindOneAndUpdateAsync(It.IsAny<FilterDefinition<Counter>>(), It.IsAny<UpdateDefinition<Counter>>(),
+                    It.IsAny<FindOneAndUpdateOptions<Counter>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+
+            await Assert.ThrowsAsync<DataAccessException>(() => _counterService.GetNextSequenceValueAsync(sequenceName));
         }
     }
 }

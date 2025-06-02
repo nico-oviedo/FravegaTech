@@ -22,6 +22,13 @@ namespace OrderService.Application.Tests.Services
         }
 
         [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new OrderValidationService(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new OrderValidationService(_mockOrderRepository.Object, null!));
+        }
+
+        [Fact]
         public async Task IsOrderValidAsync_ReturnsTrue_WhenReferenceIsUnique_AndTotalIsCorrect()
         {
             var orderRequest = GetValidOrderRequestDto();

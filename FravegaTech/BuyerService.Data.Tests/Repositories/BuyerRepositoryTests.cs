@@ -103,6 +103,27 @@ namespace BuyerService.Data.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetBuyerIdByDocumentNumberAsync_ThrowsDataAccessException_OnError()
+        {
+            var buyer = new Buyer { _id = "FRE123", FirstName = "Rodrigo", LastName = "Hernandez", DocumentNumber = "57.899.332" };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Buyer>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns(new List<Buyer> { buyer });
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>()))
+                .Returns(true)
+                .Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
+            _mockBuyersCollection.Setup(c =>
+                    c.FindAsync(It.IsAny<FilterDefinition<Buyer>>(), It.IsAny<FindOptions<Buyer, Buyer>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+
+            await Assert.ThrowsAsync<DataAccessException>(() => _buyerRepository.GetBuyerIdByDocumentNumberAsync("57.899.332"));
+        }
+
+        [Fact]
         public async Task AddBuyerAsync_ReturnsId_WhenSuccessful()
         {
             var buyer = new Buyer { _id = "FRE123", FirstName = "Rodrigo", LastName = "Hernandez", DocumentNumber = "57.899.332" };

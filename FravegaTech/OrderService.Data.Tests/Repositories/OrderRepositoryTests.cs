@@ -6,6 +6,7 @@ using OrderService.Data.Repositories;
 using OrderService.Domain;
 using OrderService.Domain.Enums;
 using SharedKernel.Exceptions;
+using System.Linq.Expressions;
 
 namespace OrderService.Data.Tests.Repositories
 {
@@ -103,6 +104,26 @@ namespace OrderService.Data.Tests.Repositories
         }
 
         [Fact]
+        public async Task IsUniqueExternalReferenceInChannelAsync_ThrowsDataAccessException_OnError()
+        {
+            var order = new Order { _id = "FRE123", OrderId = 14, ExternalReferenceId = "ZZZ454", Status = OrderStatus.Created };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Order>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns(new List<Order> { order });
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>()))
+                .Returns(true)
+                .Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
+            _mockOrdersCollection.Setup(c => c.FindAsync(It.IsAny<FilterDefinition<Order>>(), It.IsAny<FindOptions<Order, Order>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+
+            await Assert.ThrowsAsync<DataAccessException>(() => _orderRepository.IsUniqueExternalReferenceInChannelAsync("ZZZ454", SourceChannel.Ecommerce));
+        }
+
+        [Fact]
         public async Task AddOrderAsync_ReturnsId_WhenSuccessful()
         {
             var order = new Order { _id = "FRE123", OrderId = 14, ExternalReferenceId = "ZZZ454", Status = OrderStatus.Created };
@@ -186,6 +207,58 @@ namespace OrderService.Data.Tests.Repositories
                 .ThrowsAsync(new Exception("Data access exception."));
 
             await Assert.ThrowsAsync<DataAccessException>(() => _orderRepository.UpdateOrderStatusAsync(orderId, newStatus));
+        }
+
+        [Fact]
+        public async Task SearchOrdersAsync_ReturnsOrders()
+        {
+            var orderList = new List<Order>
+            {
+                new Order { OrderId = 1, BuyerId = "B345FG", Status = OrderStatus.Created, PurchaseDate = DateTime.UtcNow }
+            };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Order>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns(orderList);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>()))
+                .Returns(true)
+                .Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
+            _mockOrdersCollection.Setup(c =>
+                    c.FindAsync(It.IsAny<FilterDefinition<Order>>(), It.IsAny<FindOptions<Order, Order>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockAsyncCursor.Object);
+
+            var result = await _orderRepository.SearchOrdersAsync(1, null, null, null, null);
+
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(1, result[0].OrderId);
+        }
+
+        [Fact]
+        public async Task SearchOrdersAsync_ThrowsDataAccessException()
+        {
+            var orderList = new List<Order>
+            {
+                new Order { OrderId = 1, BuyerId = "B345FG", Status = OrderStatus.Created, PurchaseDate = DateTime.UtcNow }
+            };
+
+            var mockAsyncCursor = new Mock<IAsyncCursor<Order>>();
+            mockAsyncCursor.Setup(_ => _.Current).Returns(orderList);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>()))
+                .Returns(true)
+                .Returns(false);
+            mockAsyncCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true)
+                .ReturnsAsync(false);
+
+            _mockOrdersCollection.Setup(c =>
+                    c.FindAsync(It.IsAny<FilterDefinition<Order>>(), It.IsAny<FindOptions<Order, Order>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Data access exception."));
+
+            await Assert.ThrowsAsync<DataAccessException>(() => _orderRepository.SearchOrdersAsync(1, null, null, null, null));
         }
     }
 }

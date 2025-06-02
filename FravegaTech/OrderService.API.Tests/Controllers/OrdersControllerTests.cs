@@ -23,6 +23,13 @@ namespace OrderService.API.Tests.Controllers
             _ordersController = new OrdersController(_mockOrderService.Object, _mockLogger.Object);
         }
 
+        [Fact]
+        public void Constructor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new OrdersController(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() => new OrdersController(_mockOrderService.Object, null!));
+        }
+
         #region GetAsync
 
         [Fact]
@@ -59,6 +66,18 @@ namespace OrderService.API.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAsync_ReturnsInternalServerError_WhenDataAccessException()
+        {
+            _mockOrderService.Setup(s => s.GetFullOrderAsync(It.IsAny<int>()))
+                .ThrowsAsync(new DataAccessException("OrderService", new Exception()));
+
+            var result = await _ordersController.GetAsync(17);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Ocurrió un error al obtener los datos de la orden.", serverError.Value);
+        }
+
+        [Fact]
         public async Task GetAsync_ReturnsInternalServerError_WhenUnhandledException()
         {
             _mockOrderService.Setup(s => s.GetFullOrderAsync(It.IsAny<int>()))
@@ -90,6 +109,22 @@ namespace OrderService.API.Tests.Controllers
             Assert.Equal(orders, okResult.Value);
         }
 
+        [Theory]
+        [InlineData(0, "Created", 0, 0)]
+        [InlineData(1, "Create", 0, 0)]
+        [InlineData(1, "Invoiced", 2, 0)]
+        [InlineData(1, "Invoiced", 0, 2)]
+        [InlineData(1, "Invoiced", -5, -8)]
+        public async Task SearchAsync_ReturnsBadRequest_WhenInvalidFilters(int orderId, string status, int addDaysCreatedFrom, int addDaysCreatedTo)
+        {
+            var from = DateTime.Now.AddDays(addDaysCreatedFrom);
+            var to = DateTime.Now.AddDays(addDaysCreatedTo);
+
+            var result = await _ordersController.SearchAsync(orderId, "Test DocumentNumber", status, from, to);
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, badRequest.StatusCode);
+        }
+
         [Fact]
         public async Task SearchAsync_ReturnsNotFound_WhenOrdersNotFound()
         {
@@ -102,6 +137,21 @@ namespace OrderService.API.Tests.Controllers
             var result = await _ordersController.SearchAsync(orderId, null, status, null, null);
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.Equal("No fueron encontradas Ordenes con los filtros ingresados.", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ReturnsInternalServerError_WhenDataAccessException()
+        {
+            var status = "Cancelled";
+            var now = DateTime.Now;
+
+            _mockOrderService.Setup(s => s.SearchOrdersAsync(null, null, status, now.AddDays(-7), now))
+                .ThrowsAsync(new DataAccessException("OrderService", new Exception()));
+
+            var result = await _ordersController.SearchAsync(null, null, status, now.AddDays(-7), now);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Ocurrió un error al buscar las ordenes.", serverError.Value);
         }
 
         [Fact]
@@ -136,7 +186,19 @@ namespace OrderService.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task PostAsync_Returns500_WhenServiceThrows()
+        public async Task PostAsync_ReturnsBadRequest_WhenBusinessValidationException()
+        {
+            var orderRequestDto = new OrderRequestDto { ExternalReferenceId = "ABC478", TotalValue = 3500 };
+            _mockOrderService.Setup(s => s.AddOrderAsync(orderRequestDto)).ThrowsAsync(new BusinessValidationException("Order", "OrderService"));
+
+            var result = await _ordersController.PostAsync(orderRequestDto);
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, badRequest.StatusCode);
+            Assert.Equal("La orden es inválida y no ha sido ingresada en el sistema.", badRequest.Value);
+        }
+
+        [Fact]
+        public async Task PostAsync_ReturnsInternalServerError_WhenDataAccessException()
         {
             var orderRequestDto = new OrderRequestDto { ExternalReferenceId = "ABC478", TotalValue = 3500 };
             _mockOrderService.Setup(s => s.AddOrderAsync(orderRequestDto)).ThrowsAsync(new DataAccessException("OrderService", new Exception()));
@@ -145,6 +207,18 @@ namespace OrderService.API.Tests.Controllers
             var serverError = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverError.StatusCode);
             Assert.Equal("Ocurrió un error al ingresar una nueva orden en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task PostAsync_ReturnsInternalServerError_WhenUnhandledException()
+        {
+            var orderRequestDto = new OrderRequestDto { ExternalReferenceId = "ABC478", TotalValue = 3500 };
+            _mockOrderService.Setup(s => s.AddOrderAsync(orderRequestDto)).ThrowsAsync(new Exception());
+
+            var result = await _ordersController.PostAsync(orderRequestDto);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Un error interno ha ocurrido.", serverError.Value);
         }
 
         #endregion
@@ -165,7 +239,41 @@ namespace OrderService.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task AddEventAsync_Returns500_WhenServiceThrows()
+        public async Task AddEventAsync_ReturnsBadRequest_WhenIdIsZero()
+        {
+            var result = await _ordersController.AddEventAsync(0, new EventDto());
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Id de la orden es requerido.", badRequest.Value);
+        }
+
+        [Fact]
+        public async Task AddEventAsync_ReturnsNotFound_WhenOrderNotFound()
+        {
+            var orderId = 10;
+            var eventDto = new EventDto { Id = "TestEvent", Type = "Invoiced" };
+            _mockOrderService.Setup(s => s.AddEventToOrderAsync(orderId, eventDto)).ThrowsAsync(new NotFoundException("Event", "OrderService"));
+
+            var result = await _ordersController.AddEventAsync(orderId, eventDto);
+            var serverError = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal(404, serverError.StatusCode);
+            Assert.Equal("La orden no existe en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task AddEventAsync_ReturnsBadRequest_WhenBusinessValidationException()
+        {
+            var orderId = 10;
+            var eventDto = new EventDto { Id = "TestEvent", Type = "Invoiced" };
+            _mockOrderService.Setup(s => s.AddEventToOrderAsync(orderId, eventDto)).ThrowsAsync(new BusinessValidationException("Event", "OrderService"));
+
+            var result = await _ordersController.AddEventAsync(orderId, eventDto);
+            var serverError = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, serverError.StatusCode);
+            Assert.Equal("El evento es inválido y no ha sido ingresado en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task AddEventAsync_ReturnsInternalServerError_WhenDataAccessException()
         {
             var orderId = 10;
             var eventDto = new EventDto { Id = "TestEvent", Type = "Invoiced" };
@@ -175,6 +283,19 @@ namespace OrderService.API.Tests.Controllers
             var serverError = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverError.StatusCode);
             Assert.Equal("Ocurrió un error al ingresar un nuevo evento en el sistema.", serverError.Value);
+        }
+
+        [Fact]
+        public async Task AddEventAsync_ReturnsInternalServerError_WhenUnhandledException()
+        {
+            var orderId = 10;
+            var eventDto = new EventDto { Id = "TestEvent", Type = "Invoiced" };
+            _mockOrderService.Setup(s => s.AddEventToOrderAsync(orderId, eventDto)).ThrowsAsync(new Exception());
+
+            var result = await _ordersController.AddEventAsync(orderId, eventDto);
+            var serverError = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverError.StatusCode);
+            Assert.Equal("Un error interno ha ocurrido.", serverError.Value);
         }
 
         #endregion
